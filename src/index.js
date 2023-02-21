@@ -247,7 +247,7 @@ module.exports = async function App(context, props) {
     payload('*', Payload),
     // return the `Command` action when receiving "/join", "/invite", or "/whatever" text messages
     text(/^\/(?<command>\w+)(?:\s(?<content>.+))?/i, Command),
-    text('ok', RunPrediction),
+    text(/ok/i, RunPrediction),
     text('*', Others),
   ]);
 };
