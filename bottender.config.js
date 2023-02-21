@@ -21,7 +21,8 @@ module.exports = {
     },
   },
   initialState: {
-    service: 0,
+    service: -1,
+    query: {},
   },
   channels: {
     messenger: {
