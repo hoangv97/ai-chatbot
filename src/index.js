@@ -21,7 +21,7 @@ async function Command(
     case 'h':
     case 'help':
       await context.sendText(
-        'Commands\n1. s - service: Select a service\n2. a - active: Show service info'
+        'Commands\n1. s - Select a service\n2. a - Active service'
       );
       break;
     case 's':

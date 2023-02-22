@@ -1,6 +1,6 @@
 module.exports = {
   session: {
-    driver: 'memory',
+    driver: process.env.SESSION_DRIVER || 'memory',
     stores: {
       memory: {
         maxSize: 500,
@@ -9,14 +9,14 @@ module.exports = {
         dirname: '.sessions',
       },
       redis: {
-        port: 6379,
-        host: '127.0.0.1',
-        password: 'auth',
+        port: process.env.REDIS_PORT || 6379,
+        host: process.env.REDIS_HOST || '127.0.0.1',
+        password: process.env.REDIS_PASSWORD || 'auth',
         db: 0,
       },
       mongo: {
-        url: 'mongodb://localhost:27017',
-        collectionName: 'sessions',
+        url: process.env.MONGO_URL || 'mongodb://localhost:27017',
+        collectionName: process.env.MONGO_COLLECTION || 'sessions',
       },
     },
   },
