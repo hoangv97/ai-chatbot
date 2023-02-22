@@ -20,11 +20,11 @@ async function Command(
   }
 ) {
   // await context.sendText(`Executing command ${command} with content: ${content}`);
-  switch (command) {
+  switch (command.toLowerCase()) {
     case 'h':
     case 'help':
       await context.sendText(
-        'Commands\n1. s - Select a service\n2. a - Active service\n3. c - Clear context\n4. d - Debug'
+        'Commands\n[s] Select a service\n[a] Active service\n[c] Clear context\n[d] Debug'
       );
       break;
     case 's':
@@ -170,7 +170,7 @@ module.exports = async function App(context, props) {
   return router([
     payload('*', Payload),
     // return the `Command` action when receiving "/join", "/invite", or "/whatever" text messages
-    text(/^\/(?<command>\w+)(?:\s(?<content>.+))?/i, Command),
+    text(/^[/.](?<command>\w+)(?:\s(?<content>.+))?/i, Command),
     text(/^ok$/i, Submit),
     text('*', Others),
   ]);

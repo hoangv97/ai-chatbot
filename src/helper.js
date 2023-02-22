@@ -1,4 +1,4 @@
-const { SERVICES, Payload_Type } = require('./const');
+const { SERVICES, Payload_Type, Service_Type } = require('./const');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -81,7 +81,12 @@ const clearServiceData = async (context) => {
     query: {},
     context: [],
   });
-  await context.sendText('Cleared context.');
+  const activeService = SERVICES[context.state.service];
+  if (activeService.type === Service_Type.Chat) {
+    await context.sendText('New conversation.');
+  } else {
+    await context.sendText('Clearing data.');
+  }
 };
 
 const setQueryForService = async (context, field, value) => {
