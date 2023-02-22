@@ -1,4 +1,4 @@
-const { SERVICES } = require('./const');
+const { SERVICES, Payload_Type } = require('./const');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -35,18 +35,36 @@ const getFieldNameByType = (service, type) => {
 };
 
 const selectService = async (context) => {
-  await context.sendText('Select a service', {
-    quickReplies: SERVICES.map((service, i) => ({
-      contentType: 'text',
+  await context.sendGenericTemplate(
+    SERVICES.map((service, i) => ({
       title: service.name,
-      payload: `s_${i}`,
-    })),
-  });
+      subtitle: service.title,
+      imageUrl:
+        service.imageUrl ||
+        'https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MjN8fHRlY2hub2xvZ3l8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60',
+      defaultAction: {
+        type: 'web_url',
+        url: service.url,
+        webviewHeightRatio: 'tall',
+        // messengerExtensions: true,
+        // fallbackUrl: service.url,
+      },
+      buttons: [
+        {
+          type: 'postback',
+          title: 'Select',
+          payload: `${Payload_Type.Select_Service}${i}`,
+        },
+      ],
+    }))
+  );
 };
 
 const showActiveService = async (context) => {
   const activeService = SERVICES[context.state.service];
-  await context.sendText(`${activeService.name}\n${activeService.help}`);
+  await context.sendText(
+    `${activeService.name}\n${activeService.title}\n\n${activeService.help}\n\n${activeService.url}`
+  );
 };
 
 const checkActiveService = async (context) => {
@@ -66,6 +84,17 @@ const clearServiceData = async (context) => {
   await context.sendText('Cleared context.');
 };
 
+const setQueryForService = async (context, field, value) => {
+  context.setState({
+    ...context.state,
+    query: {
+      ...context.state.query,
+      [field]: value,
+    },
+  });
+  await context.sendText(`Setting ${field}`);
+};
+
 const setValueForQuery = async (context, type, value) => {
   if (!(await checkActiveService(context))) {
     return;
@@ -76,7 +105,8 @@ const setValueForQuery = async (context, type, value) => {
   let fieldValue = value;
 
   if (type === 'text') {
-    const [textFieldName, _value] = splitByFirstSpace(value);
+    let [textFieldName, _value] = splitByFirstSpace(value);
+    textFieldName = textFieldName.toLowerCase();
     // Find this field name in params list
     const param = activeService.params.find(
       (item) => item.name === textFieldName || item.alias === textFieldName
@@ -84,6 +114,20 @@ const setValueForQuery = async (context, type, value) => {
     if (param) {
       fieldName = param.name;
       fieldValue = (_value || '').trim();
+
+      if (param.type === 'select' && !fieldValue) {
+        // Allow user to select an option
+        await context.sendText(`Select ${fieldName}`, {
+          quickReplies: param.options.map((option) => ({
+            contentType: 'text',
+            title: option,
+            payload: [Payload_Type.Select_Query_Option, fieldName, option].join(
+              Payload_Type.Splitter
+            ),
+          })),
+        });
+        return;
+      }
     }
   }
 
@@ -95,14 +139,7 @@ const setValueForQuery = async (context, type, value) => {
     return;
   }
 
-  context.setState({
-    ...context.state,
-    query: {
-      ...context.state.query,
-      [fieldName]: fieldValue,
-    },
-  });
-  await context.sendText(`Set value for ${fieldName}`);
+  await setQueryForService(context, fieldName, fieldValue);
 };
 
 module.exports = {
@@ -113,4 +150,5 @@ module.exports = {
   checkActiveService,
   clearServiceData,
   setValueForQuery,
+  setQueryForService,
 };

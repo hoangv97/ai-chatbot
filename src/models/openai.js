@@ -7,6 +7,19 @@ const configuration = new Configuration({
 });
 const openai = new OpenAIApi(configuration);
 
+const handleError = async (context, error) => {
+  let message;
+  try {
+    if (error.response) {
+      message = error.response.data.error.message;
+    } else {
+      message = error.message;
+    }
+  } finally {
+    await context.sendText(message || 'Error!');
+  }
+};
+
 const createCompletion = async (prompt) => {
   const response = await openai.createCompletion({
     prompt,
@@ -16,7 +29,7 @@ const createCompletion = async (prompt) => {
   return response.data.choices[0].text;
 };
 
-const createCompletionFromConversation = async (messages) => {
+const createCompletionFromConversation = async (context, messages) => {
   const prompt =
     'I am a friendly artificial intelligence.\n' +
     messages.map((m, i) => `${i % 2 ? 'AI' : 'USER'}: ${m}`).join('\n') +
@@ -30,14 +43,14 @@ const createCompletionFromConversation = async (messages) => {
     });
     return response.data.choices[0].text.trim();
   } catch (e) {
-    console.log(e);
+    handleError(context, e);
   }
 };
 
 const createImage = async ({ prompt, n }) => {
   const response = await openai.createImage({
     prompt,
-    n,
+    n: n ? parseInt(n) : undefined,
     size: '512x512',
     response_format: 'url',
   });
@@ -52,7 +65,7 @@ const createImageEdit = async ({ prompt, image, n }) => {
     fs.createReadStream(imagePath),
     null, // mask is optional
     prompt,
-    n,
+    n ? parseInt(n) : undefined,
     '512x512',
     'url'
   );
@@ -63,7 +76,7 @@ const createImageVariation = async ({ image, n }) => {
   const imagePath = await downloadFile(image, imageDownloadsPath);
   const response = await openai.createImageVariation(
     fs.createReadStream(imagePath),
-    n,
+    n ? parseInt(n) : undefined,
     '512x512',
     'url'
   );
@@ -86,9 +99,13 @@ const generateImage = async (context) => {
       createFunc = createImage;
       break;
   }
-  const outputs = await createFunc(others);
-  for (const image of outputs) {
-    await context.sendImage(image.url);
+  try {
+    const outputs = await createFunc(others);
+    for (const image of outputs) {
+      await context.sendImage(image.url);
+    }
+  } catch (e) {
+    handleError(context, e);
   }
 };
 

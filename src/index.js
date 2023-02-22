@@ -1,5 +1,5 @@
 const { router, text, payload, messenger } = require('bottender/router');
-const { SERVICES, Service_Type } = require('./const');
+const { SERVICES, Service_Type, Payload_Type } = require('./const');
 const {
   objectToJsonWithTruncatedUrls,
   selectService,
@@ -7,6 +7,7 @@ const {
   showActiveService,
   clearServiceData,
   setValueForQuery,
+  setQueryForService,
 } = require('./helper');
 const { runPrediction } = require('./models/prediction');
 
@@ -63,7 +64,7 @@ async function Others(context, props) {
     setValueForQuery(context, 'text', context.event.text);
   } else if (activeService.type === Service_Type.Chat) {
     const question = context.event.text;
-    const response = await activeService.getAnswer([
+    const response = await activeService.getAnswer(context, [
       ...context.state.context,
       question,
     ]);
@@ -78,8 +79,8 @@ async function Others(context, props) {
 async function Payload(context, props) {
   const payload = context.event.payload;
   // Select a service
-  if (payload.startsWith('s_')) {
-    const service = parseInt(payload.replace('s_', ''));
+  if (payload.startsWith(Payload_Type.Select_Service)) {
+    const service = parseInt(payload.replace(Payload_Type.Select_Service, ''));
     context.setState({
       ...context.state,
       service,
@@ -87,6 +88,11 @@ async function Payload(context, props) {
       context: [],
     });
     await showActiveService(context);
+  }
+  // Select a param option
+  if (payload.startsWith(Payload_Type.Select_Query_Option)) {
+    const [_, field, value] = payload.split(Payload_Type.Splitter);
+    setQueryForService(context, field, value);
   }
 }
 
@@ -105,7 +111,15 @@ async function HandleImage(context) {
 }
 
 async function HandleAudio(context) {
-  await context.sendText(`received the audio: ${context.event.audio.url}`);
+  if (!(await checkActiveService(context))) {
+    return;
+  }
+  const activeService = SERVICES[context.state.service];
+  if ([Service_Type.Prediction].includes(activeService.type)) {
+    setValueForQuery(context, 'audio', context.event.audio.url);
+  } else {
+    await context.sendText(`received the audio: ${context.event.audio.url}`);
+  }
 }
 
 async function HandleVideo(context) {
