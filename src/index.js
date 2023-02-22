@@ -24,12 +24,18 @@ async function Command(
     case 'h':
     case 'help':
       await context.sendText(
-        'Commands\n[s] Select a service\n[a] Active service\n[c] Clear context\n[d] Debug'
+        'Commands\n[s] Select a service + page\n[a] Active service\n[c] Clear context\n[d] Debug'
       );
       break;
     case 's':
     case 'service':
-      await selectService(context);
+      try {
+        let page = (content || '').trim();
+        page = page ? parseInt(page) - 1 : 0;
+        await selectService(context, page);
+      } catch (e) {
+        await context.sendText('Invalid command.');
+      }
       break;
     case 'a':
     case 'active':

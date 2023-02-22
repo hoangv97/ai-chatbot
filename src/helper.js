@@ -34,9 +34,11 @@ const getFieldNameByType = (service, type) => {
   return field.name;
 };
 
-const selectService = async (context) => {
+const selectService = async (context, page = 0) => {
+  const NUM_PER_PAGE = 7;
+  const startIndex = page * NUM_PER_PAGE;
   await context.sendGenericTemplate(
-    SERVICES.map((service, i) => ({
+    SERVICES.slice(startIndex, startIndex + NUM_PER_PAGE).map((service, i) => ({
       title: service.name,
       subtitle: service.title,
       imageUrl:
@@ -53,7 +55,7 @@ const selectService = async (context) => {
         {
           type: 'postback',
           title: 'Select',
-          payload: `${Payload_Type.Select_Service}${i}`,
+          payload: `${Payload_Type.Select_Service}${startIndex + i}`,
         },
       ],
     }))
