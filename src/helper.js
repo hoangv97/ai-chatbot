@@ -2,6 +2,23 @@ const { SERVICES } = require('./const');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+const objectToJsonWithTruncatedUrls = (obj) => {
+  const MAX_URL_LENGTH = 50;
+  return JSON.stringify(
+    obj,
+    (key, value) => {
+      if (typeof value === 'string' && value.startsWith('http')) {
+        return value.length > MAX_URL_LENGTH
+          ? value.slice(0, MAX_URL_LENGTH) + '...'
+          : value;
+      } else {
+        return value;
+      }
+    },
+    2
+  );
+};
+
 function splitByFirstSpace(str) {
   const index = str.indexOf(' ');
   if (index === -1) {
@@ -90,6 +107,7 @@ const setValueForQuery = async (context, type, value) => {
 
 module.exports = {
   sleep,
+  objectToJsonWithTruncatedUrls,
   selectService,
   showActiveService,
   checkActiveService,

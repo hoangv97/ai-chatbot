@@ -1,6 +1,7 @@
 const { router, text, payload, messenger } = require('bottender/router');
 const { SERVICES, Service_Type } = require('./const');
 const {
+  objectToJsonWithTruncatedUrls,
   selectService,
   checkActiveService,
   showActiveService,
@@ -22,7 +23,7 @@ async function Command(
     case 'h':
     case 'help':
       await context.sendText(
-        'Commands\n1. s - Select a service\n2. a - Active service\n3. c - Clear context'
+        'Commands\n1. s - Select a service\n2. a - Active service\n3. c - Clear context\n4. d - Debug'
       );
       break;
     case 's':
@@ -43,7 +44,7 @@ async function Command(
       break;
     case 'd':
     case 'debug':
-      await context.sendText(JSON.stringify(context.state));
+      await context.sendText(objectToJsonWithTruncatedUrls(context.state));
       break;
     default:
       await context.sendText('Sorry. Command not found.');
