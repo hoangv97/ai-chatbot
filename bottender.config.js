@@ -23,6 +23,7 @@ module.exports = {
   initialState: {
     service: -1,
     query: {},
+    context: [],
   },
   channels: {
     messenger: {

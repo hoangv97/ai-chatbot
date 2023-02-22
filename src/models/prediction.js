@@ -1,6 +1,6 @@
 const axios = require('axios');
-const { SERVICES } = require('./const');
-const { sleep, checkActiveService } = require('./helper');
+const { SERVICES } = require('../const');
+const { sleep, checkActiveService } = require('../helper');
 
 async function postPrediction(context, version, input) {
   console.log(input);
@@ -43,10 +43,7 @@ async function getPrediction(context, id) {
   return response.data;
 }
 
-async function RunPrediction(context, props) {
-  if (!(await checkActiveService(context))) {
-    return;
-  }
+async function runPrediction(context) {
   if (!Object.keys(context.state.query)) {
     await context.sendText(`Invalid query`);
     return;
@@ -90,5 +87,5 @@ async function RunPrediction(context, props) {
 }
 
 module.exports = {
-  RunPrediction,
+  runPrediction,
 };

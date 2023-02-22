@@ -40,6 +40,15 @@ const checkActiveService = async (context) => {
   return true;
 };
 
+const clearServiceData = async (context) => {
+  context.setState({
+    ...context.state,
+    query: {},
+    context: [],
+  });
+  await context.sendText('Cleared context.');
+};
+
 const setValueForQuery = async (context, type, value) => {
   if (!(await checkActiveService(context))) {
     return;
@@ -57,7 +66,7 @@ const setValueForQuery = async (context, type, value) => {
     );
     if (param) {
       fieldName = param.name;
-      fieldValue = _value.trim();
+      fieldValue = (_value || '').trim();
     }
   }
 
@@ -84,5 +93,6 @@ module.exports = {
   selectService,
   showActiveService,
   checkActiveService,
+  clearServiceData,
   setValueForQuery,
 };
