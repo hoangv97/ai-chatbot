@@ -154,6 +154,22 @@ const SERVICES = [
     help: `Params: image, prompt, np (negative_prompt), no (number of outputs | 1 or 4), nis (Number of denoising steps | 1-500 | =100), gs (Scale for classifier-free guidance | 1-20 | =7.5), igs (push the generated image towards the inital image | =1.5), scheduler, seed (Random seed)`,
   },
   {
+    name: 'Codeformer',
+    url: 'https://replicate.com/sczhou/codeformer',
+    imageUrl:
+      'https://bucketeer-be99e627-94e7-4e5b-a292-54eeb40ac303.s3.amazonaws.com/public/models_models_featured_image/0e31af92-963e-4ae3-b900-6104b22f4f7f/012.png',
+    version: '7de2ea26c616d5bf2245ad0d5e24f0ff9a6204578a5c876db53142edd9d2cd56',
+    type: Service_Type.Prediction,
+    output_type: Output_Type.SingleImage,
+    params: [
+      { name: 'image', type: 'image' },
+      { name: 'codeformer_fidelity', type: 'text', alias: 'cf' },
+      { name: 'upscale', type: 'text', alias: 'up' },
+    ],
+    title: `Robust face restoration algorithm for old photos / AI-generated faces.`,
+    help: `Params: image, cf (Balance the quality (lower number) and fidelity (higher number) | 0-1 | =0.7), up (The final upsampling scale of the image | =2)`,
+  },
+  {
     name: 'Styleclip',
     url: 'https://replicate.com/orpatashnik/styleclip',
     imageUrl:

@@ -33,11 +33,13 @@ const createCompletion = async (prompt) => {
 const createCompletionFromConversation = async (context, messages) => {
   const prompt =
     'I am a friendly artificial intelligence.\n' +
-    messages.map((m, i) => `${i % 2 ? 'AI' : 'USER'}: ${m}`).join('\n') +
-    '\nAI: ';
+    messages.map((m) => `${m.actor}: ${m.content}`).join('\n');
 
   try {
     const max_tokens = 4096 - encode(prompt).length;
+    if (max_tokens < 0) {
+      return null;
+    }
     const response = await openai.createCompletion({
       prompt,
       max_tokens,
@@ -46,6 +48,7 @@ const createCompletionFromConversation = async (context, messages) => {
     return response.data.choices[0].text.trim();
   } catch (e) {
     handleError(context, e);
+    return null;
   }
 };
 

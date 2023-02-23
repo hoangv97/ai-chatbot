@@ -68,15 +68,28 @@ async function Others(context, props) {
     [Service_Type.Prediction, Service_Type.DallE].includes(activeService.type)
   ) {
     setValueForQuery(context, 'text', context.event.text);
-  } else if (activeService.type === Service_Type.Chat) {
+  }
+  // Chatbot
+  else if (activeService.type === Service_Type.Chat) {
     const question = context.event.text;
     const response = await activeService.getAnswer(context, [
       ...context.state.context,
-      question,
+      { actor: 'USER', content: question },
+      { actor: 'AI', content: '' },
     ]);
+    if (!response) {
+      await context.sendText(
+        'An error occurred. Please try again or create new conversation by `/c`'
+      );
+      return;
+    }
     context.setState({
       ...context.state,
-      context: [...context.state.context, question, response],
+      context: [
+        ...context.state.context,
+        { actor: 'USER', content: question },
+        { actor: 'AI', content: response },
+      ],
     });
     await context.sendText(response);
   }
@@ -93,10 +106,15 @@ async function Payload(context, props) {
       query: {},
       context: [],
     });
-    await showActiveService(context);
+    const activeService = SERVICES[context.state.service];
+    if ([Service_Type.Chat].includes(activeService.type)) {
+      await context.sendText(`Hi there, how can I assist you today?`);
+    } else {
+      await showActiveService(context);
+    }
   }
   // Select a param option
-  if (payload.startsWith(Payload_Type.Select_Query_Option)) {
+  else if (payload.startsWith(Payload_Type.Select_Query_Option)) {
     const [_, field, value] = payload.split(Payload_Type.Splitter);
     setQueryForService(context, field, value);
   }

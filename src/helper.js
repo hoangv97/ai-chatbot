@@ -35,7 +35,7 @@ const getFieldNameByType = (service, type) => {
 };
 
 const selectService = async (context, page = 0) => {
-  const NUM_PER_PAGE = 7;
+  const NUM_PER_PAGE = 6;
   const startIndex = page * NUM_PER_PAGE;
   await context.sendGenericTemplate(
     SERVICES.slice(startIndex, startIndex + NUM_PER_PAGE).map((service, i) => ({

@@ -77,19 +77,19 @@ async function runPrediction(context) {
     prediction.status !== 'succeeded' &&
     prediction.status !== 'failed'
   ) {
-    await sleep(QUERY_INTERVAL);
-    duration += QUERY_INTERVAL;
-    if (duration % 5000 === 0) {
+    if (duration % 7500 === 0) {
       await context.sendText(`${prediction.status}...`);
     }
+    await sleep(QUERY_INTERVAL);
+    duration += QUERY_INTERVAL;
     const response = await getPrediction(context, prediction.id);
-    if (!response) {
-      await context.sendText('Error!');
-      return;
-    }
     prediction = response;
   }
   // console.log(prediction);
+  if (!prediction || !prediction.output) {
+    await context.sendText('Error when getting result!');
+    return;
+  }
   switch (activeService.output_type) {
     case Output_Type.Image:
       for (const image of prediction.output) {
