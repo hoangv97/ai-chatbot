@@ -1,5 +1,6 @@
 const { downloadFile } = require('../file');
 const fs = require('fs');
+const { encode } = require('gpt-3-encoder');
 const { Configuration, OpenAIApi } = require('openai');
 
 const configuration = new Configuration({
@@ -36,10 +37,11 @@ const createCompletionFromConversation = async (context, messages) => {
     '\nAI: ';
 
   try {
+    const max_tokens = 4096 - encode(prompt).length;
     const response = await openai.createCompletion({
       prompt,
+      max_tokens,
       model: 'text-davinci-003',
-      max_tokens: 4096 - prompt.length,
     });
     return response.data.choices[0].text.trim();
   } catch (e) {
