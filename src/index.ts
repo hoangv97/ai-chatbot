@@ -1,10 +1,12 @@
 import { Action, MessengerContext } from 'bottender';
 import { payload, router, text } from 'bottender/router';
+import { encode } from 'gpt-3-encoder';
 import { Payload_Type, SERVICES, Service_Type } from './const';
 import {
   checkActiveService, clearServiceData, getActiveService, selectService, setQueryForService, setValueForQuery, showActiveService
 } from './context';
 import { getReadableContentFromUrl, objectToJsonWithTruncatedUrls } from './helper';
+import { GPT3_MAX_TOKENS } from './models/openai';
 import { runPrediction } from './models/prediction';
 import { handleUrlPayload, sendUrlActions } from './models/url';
 
@@ -60,6 +62,10 @@ async function HandleUrl(context: MessengerContext) {
   const content = await getReadableContentFromUrl(url);
   if (!content) {
     await context.sendText(`Sorry! Page content is empty.`);
+    return
+  }
+  if (encode(content).length >= GPT3_MAX_TOKENS - 200) {
+    await context.sendText(`Sorry! Page content is too long.`);
     return
   }
 
