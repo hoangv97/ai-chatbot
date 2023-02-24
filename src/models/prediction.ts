@@ -1,8 +1,10 @@
-const axios = require('axios');
-const { SERVICES, Output_Type } = require('../const');
-const { sleep } = require('../helper');
+import axios from 'axios';
+import { MessengerContext } from 'bottender';
+import { Output_Type, SERVICES } from '../const';
+import { getActiveService } from '../context';
+import { sleep } from '../helper';
 
-async function postPrediction(context, version, input) {
+async function postPrediction(context: MessengerContext, version: string, input: any) {
   try {
     // console.log(input);
     const response = await axios({
@@ -31,7 +33,7 @@ async function postPrediction(context, version, input) {
   }
 }
 
-async function getPrediction(context, id) {
+async function getPrediction(context: MessengerContext, id: string) {
   try {
     const response = await axios({
       method: 'GET',
@@ -53,12 +55,12 @@ async function getPrediction(context, id) {
   }
 }
 
-async function runPrediction(context) {
-  if (!Object.keys(context.state.query)) {
+export async function runPrediction(context: MessengerContext) {
+  if (!Object.keys(context.state.query as any)) {
     await context.sendText(`Invalid query`);
     return;
   }
-  const activeService = SERVICES[context.state.service];
+  const activeService = getActiveService(context);
   let prediction = await postPrediction(
     context,
     activeService.version,
@@ -110,7 +112,3 @@ async function runPrediction(context) {
       break;
   }
 }
-
-module.exports = {
-  runPrediction,
-};

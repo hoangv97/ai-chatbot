@@ -1,16 +1,17 @@
-const { downloadFile } = require('../helper');
-const fs = require('fs');
-const { encode } = require('gpt-3-encoder');
-const { Configuration, OpenAIApi } = require('openai');
+import { MessengerContext } from 'bottender';
+import fs from 'fs';
+import { encode } from 'gpt-3-encoder';
+import { Configuration, OpenAIApi } from 'openai';
+import { downloadFile } from '../helper';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
-const GPT3_MAX_TOKENS = 4096;
+export const GPT3_MAX_TOKENS = 4096;
 
-const handleError = async (context, error) => {
+const handleError = async (context: MessengerContext, error: any) => {
   let message;
   try {
     if (error.response) {
@@ -23,7 +24,7 @@ const handleError = async (context, error) => {
   }
 };
 
-const createCompletion = async (prompt) => {
+export const createCompletion = async (prompt: string) => {
   const max_tokens = GPT3_MAX_TOKENS - encode(prompt).length;
   if (max_tokens < 0) {
     return null;
@@ -33,10 +34,10 @@ const createCompletion = async (prompt) => {
     max_tokens,
     model: 'text-davinci-003',
   });
-  return response.data.choices[0].text.trim();
+  return response.data.choices[0].text?.trim();
 };
 
-const createCompletionFromConversation = async (context, messages) => {
+export const createCompletionFromConversation = async (context: MessengerContext, messages: any[]) => {
   const prompt =
     'I am a friendly artificial intelligence.\n' +
     messages.map((m) => `${m.actor}: ${m.content}`).join('\n');
@@ -50,7 +51,7 @@ const createCompletionFromConversation = async (context, messages) => {
   }
 };
 
-const createImage = async ({ prompt, n }) => {
+const createImage = async ({ prompt, n }: any) => {
   const response = await openai.createImage({
     prompt,
     n: n ? parseInt(n) : undefined,
@@ -62,11 +63,11 @@ const createImage = async ({ prompt, n }) => {
 
 const imageDownloadsPath = './downloads';
 
-const createImageEdit = async ({ prompt, image, n }) => {
+const createImageEdit = async ({ prompt, image, n }: any) => {
   const imagePath = await downloadFile(image, imageDownloadsPath);
   const response = await openai.createImageEdit(
-    fs.createReadStream(imagePath),
-    null, // mask is optional
+    fs.createReadStream(imagePath) as any,
+    {} as any, // mask is optional
     prompt,
     n ? parseInt(n) : undefined,
     '512x512',
@@ -75,10 +76,10 @@ const createImageEdit = async ({ prompt, image, n }) => {
   return response.data.data;
 };
 
-const createImageVariation = async ({ image, n }) => {
+const createImageVariation = async ({ image, n }: any) => {
   const imagePath = await downloadFile(image, imageDownloadsPath);
   const response = await openai.createImageVariation(
-    fs.createReadStream(imagePath),
+    fs.createReadStream(imagePath) as any,
     n ? parseInt(n) : undefined,
     '512x512',
     'url'
@@ -86,8 +87,8 @@ const createImageVariation = async ({ image, n }) => {
   return response.data.data;
 };
 
-const generateImage = async (context) => {
-  const { model, ...others } = context.state.query;
+export const generateImage = async (context: MessengerContext) => {
+  const { model, ...others } = context.state.query as any;
   let createFunc;
   switch (model) {
     // case 'e':
@@ -105,16 +106,11 @@ const generateImage = async (context) => {
   try {
     const outputs = await createFunc(others);
     for (const image of outputs) {
-      await context.sendImage(image.url);
+      if (image.url) {
+        await context.sendImage(image.url);
+      }
     }
   } catch (e) {
     handleError(context, e);
   }
-};
-
-module.exports = {
-  GPT3_MAX_TOKENS,
-  createCompletion,
-  createCompletionFromConversation,
-  generateImage,
 };

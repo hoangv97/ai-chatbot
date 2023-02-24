@@ -1,9 +1,16 @@
 module.exports = {
   testEnvironment: 'node',
-  moduleFileExtensions: ['js'],
+  preset: 'ts-jest',
+  moduleFileExtensions: ['js', 'ts'],
   transformIgnorePatterns: ['/node_modules/'],
   testMatch: [
-    '<rootDir>/**/__tests__/**/*.js',
-    '<rootDir>/**/*.{spec,test}.js',
+    '<rootDir>/**/__tests__/**/*.ts',
+    '<rootDir>/**/*.{spec,test}.ts',
   ],
+  globals: {
+    'ts-jest': {
+      tsConfig: '<rootDir>/tsconfig.json',
+      diagnostics: false,
+    },
+  },
 };

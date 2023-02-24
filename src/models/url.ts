@@ -1,11 +1,12 @@
-const { encode } = require('gpt-3-encoder');
-const { Payload_Type } = require('../const');
-const { getReadableContentFromUrl } = require('../helper');
-const { GPT3_MAX_TOKENS, createCompletion } = require('./openai');
+import { MessengerContext } from 'bottender';
+import { encode } from 'gpt-3-encoder';
+import { Payload_Type } from '../const';
+import { getReadableContentFromUrl } from '../helper';
+import { createCompletion, GPT3_MAX_TOKENS } from './openai';
 
-const URL_ACTIONS = ['Summarize', 'Explain'];
+export const URL_ACTIONS = ['Summarize', 'Explain'];
 
-const sendUrlActions = async (context) => {
+export const sendUrlActions = async (context: MessengerContext) => {
   await context.sendText(`Select an action`, {
     quickReplies: URL_ACTIONS.map((option) => ({
       contentType: 'text',
@@ -17,7 +18,7 @@ const sendUrlActions = async (context) => {
   });
 };
 
-const processByAction = async (url, action = 'Summarize', sentences = 1) => {
+const processByAction = async (url: string, action = 'Summarize', sentences = 1) => {
   const content = await getReadableContentFromUrl(url);
 
   let prompt;
@@ -27,7 +28,7 @@ const processByAction = async (url, action = 'Summarize', sentences = 1) => {
     prompt = `Summarize this article in ${sentences} sentences or less: ${content}`;
   }
   const tokens = encode(prompt).length;
-  const result = { url, tokens, content };
+  const result: any = { url, tokens, content };
 
   if (tokens >= GPT3_MAX_TOKENS) {
     result.message = 'Page content is too long.';
@@ -41,8 +42,8 @@ const processByAction = async (url, action = 'Summarize', sentences = 1) => {
   return result;
 };
 
-const handleUrl = async (context, action) => {
-  const url = context.state.data.url;
+export const handleUrl = async (context: MessengerContext, action: string) => {
+  const { url } = context.state.data as any;
   if (!url) {
     await context.sendText(`Error. URL not found.`);
   } else {
@@ -58,10 +59,4 @@ const handleUrl = async (context, action) => {
     }
     await sendUrlActions(context);
   }
-};
-
-module.exports = {
-  URL_ACTIONS,
-  handleUrl,
-  sendUrlActions,
 };

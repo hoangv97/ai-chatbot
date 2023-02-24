@@ -1,13 +1,13 @@
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
-const { JSDOM } = require('jsdom');
-const { Readability } = require('@mozilla/readability');
-const axios = require('axios');
+import { Readability } from '@mozilla/readability';
+import axios from 'axios';
+import fs from 'fs';
+import https from 'https';
+import { JSDOM } from 'jsdom';
+import path from 'path';
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const objectToJsonWithTruncatedUrls = (obj) => {
+export const objectToJsonWithTruncatedUrls = (obj: any) => {
   const MAX_URL_LENGTH = 50;
   return JSON.stringify(
     obj,
@@ -24,7 +24,7 @@ const objectToJsonWithTruncatedUrls = (obj) => {
   );
 };
 
-function splitByFirstSpace(str) {
+export function splitByFirstSpace(str: string) {
   const index = str.indexOf(' ');
   if (index === -1) {
     return [str];
@@ -33,13 +33,13 @@ function splitByFirstSpace(str) {
   }
 }
 
-const getFieldNameByType = (service, type) => {
-  const field = service.params.find((item) => item.type === type);
+export const getFieldNameByType = (service: any, type: string) => {
+  const field = service.params.find((item: any) => item.type === type);
   if (!field) return null;
   return field.name;
 };
 
-function downloadFile(url, outputDir) {
+export function downloadFile(url: string, outputDir: string): Promise<string> {
   return new Promise((resolve, reject) => {
     https
       .get(url, (response) => {
@@ -51,10 +51,10 @@ function downloadFile(url, outputDir) {
           return;
         }
 
-        let fileName = url.split('/').pop().split('?')[0];
+        let fileName = (url.split('/').pop() || '').split('?')[0];
         let fileExtension = path.extname(fileName);
         if (fileExtension === '') {
-          fileExtension = contentType.split('/')[1];
+          fileExtension = (contentType || '').split('/')[1];
         }
 
         const outputPath = path.join(outputDir, fileName);
@@ -74,25 +74,16 @@ function downloadFile(url, outputDir) {
   });
 }
 
-async function getReadableContentFromUrl(url) {
+export async function getReadableContentFromUrl(url: string) {
   try {
     const response = await axios.get(url);
     const doc = new JSDOM(response.data, { url }).window.document;
     const reader = new Readability(doc);
     const article = reader.parse();
-    const readableContent = article.textContent;
+    const readableContent = article?.textContent;
     return readableContent;
   } catch (error) {
     console.error(error);
     return null;
   }
 }
-
-module.exports = {
-  sleep,
-  objectToJsonWithTruncatedUrls,
-  splitByFirstSpace,
-  getFieldNameByType,
-  downloadFile,
-  getReadableContentFromUrl,
-};

@@ -1,24 +1,20 @@
-const { router, text, payload, messenger } = require('bottender/router');
-const { SERVICES, Service_Type, Payload_Type } = require('./const');
-const {
-  selectService,
-  checkActiveService,
-  showActiveService,
-  clearServiceData,
-  setValueForQuery,
-  setQueryForService,
-} = require('./context');
-const { objectToJsonWithTruncatedUrls } = require('./helper');
-const { runPrediction } = require('./models/prediction');
-const { handleUrl, sendUrlActions } = require('./models/url');
+import { Action, MessengerContext } from 'bottender';
+import { payload, router, text } from 'bottender/router';
+import { Payload_Type, SERVICES, Service_Type } from './const';
+import {
+  checkActiveService, clearServiceData, getActiveService, selectService, setQueryForService, setValueForQuery, showActiveService
+} from './context';
+import { objectToJsonWithTruncatedUrls } from './helper';
+import { runPrediction } from './models/prediction';
+import { handleUrl, sendUrlActions } from './models/url';
 
 async function Command(
-  context,
+  context: MessengerContext,
   {
     match: {
       groups: { command, content },
     },
-  }
+  }: any
 ) {
   // await context.sendText(`Executing command ${command} with content: ${content}`);
   switch (command.toLowerCase()) {
@@ -60,22 +56,22 @@ async function Command(
   }
 }
 
-async function HandleUrl(context, props) {
+async function HandleUrl(context: MessengerContext) {
   context.setState({
     ...context.state,
     data: {
-      ...context.state.data,
+      ...context.state.data as any,
       url: context.event.text,
     },
   });
   await sendUrlActions(context);
 }
 
-async function Others(context, props) {
+async function Others(context: MessengerContext) {
   if (!(await checkActiveService(context))) {
     return;
   }
-  const activeService = SERVICES[context.state.service];
+  const activeService = getActiveService(context);
   if (
     [Service_Type.Prediction, Service_Type.DallE].includes(activeService.type)
   ) {
@@ -85,7 +81,7 @@ async function Others(context, props) {
   else if (activeService.type === Service_Type.Chat) {
     const question = context.event.text;
     const response = await activeService.getAnswer(context, [
-      ...context.state.context,
+      ...context.state.context as any,
       { actor: 'USER', content: question },
       { actor: 'AI', content: '' },
     ]);
@@ -98,7 +94,7 @@ async function Others(context, props) {
     context.setState({
       ...context.state,
       context: [
-        ...context.state.context,
+        ...context.state.context as any,
         { actor: 'USER', content: question },
         { actor: 'AI', content: response },
       ],
@@ -107,7 +103,7 @@ async function Others(context, props) {
   }
 }
 
-async function Payload(context, props) {
+async function Payload(context: MessengerContext) {
   const payload = context.event.payload;
   // Select a service
   if (payload.startsWith(Payload_Type.Select_Service)) {
@@ -118,7 +114,7 @@ async function Payload(context, props) {
       query: {},
       context: [],
     });
-    const activeService = SERVICES[context.state.service];
+    const activeService = getActiveService(context);
     if ([Service_Type.Chat].includes(activeService.type)) {
       await context.sendText(`Hi there, how can I assist you today?`);
     } else {
@@ -137,11 +133,11 @@ async function Payload(context, props) {
   }
 }
 
-async function HandleImage(context) {
+async function HandleImage(context: MessengerContext) {
   if (!(await checkActiveService(context))) {
     return;
   }
-  const activeService = SERVICES[context.state.service];
+  const activeService = getActiveService(context);
   if (
     [Service_Type.Prediction, Service_Type.DallE].includes(activeService.type)
   ) {
@@ -151,11 +147,11 @@ async function HandleImage(context) {
   }
 }
 
-async function HandleAudio(context) {
+async function HandleAudio(context: MessengerContext) {
   if (!(await checkActiveService(context))) {
     return;
   }
-  const activeService = SERVICES[context.state.service];
+  const activeService = getActiveService(context);
   if ([Service_Type.Prediction].includes(activeService.type)) {
     setValueForQuery(context, 'audio', context.event.audio.url);
   } else {
@@ -163,36 +159,38 @@ async function HandleAudio(context) {
   }
 }
 
-async function HandleVideo(context) {
+async function HandleVideo(context: MessengerContext) {
   await context.sendText(`received the video: ${context.event.video.url}`);
 }
 
-async function HandleFile(context) {
+async function HandleFile(context: MessengerContext) {
   await context.sendText(`received the file: ${context.event.file.url}`);
 }
 
-async function HandleLocation(context) {
+async function HandleLocation(context: MessengerContext) {
   const { coordinates } = context.event.location;
   await context.sendText(
     `received the location: lat: ${coordinates.lat}, long: ${coordinates.long}`
   );
 }
 
-async function Submit(context, props) {
+async function Submit(context: MessengerContext) {
   if (!(await checkActiveService(context))) {
     return;
   }
-  const activeService = SERVICES[context.state.service];
+  const activeService = getActiveService(context);
   if ([Service_Type.Prediction].includes(activeService.type)) {
     runPrediction(context);
   } else if ([Service_Type.DallE].includes(activeService.type)) {
     activeService.getAnswer(context);
   } else {
-    Others(context, props);
+    Others(context);
   }
 }
 
-module.exports = async function App(context, props) {
+export default async function App(
+  context: MessengerContext
+): Promise<Action<MessengerContext> | void> {
   if (context.event.isImage) {
     return HandleImage;
   }

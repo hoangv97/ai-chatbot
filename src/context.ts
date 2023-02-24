@@ -1,7 +1,8 @@
-const { SERVICES, Payload_Type, Service_Type } = require('./const');
-const { splitByFirstSpace, getFieldNameByType } = require('./helper');
+import { MessengerContext } from 'bottender';
+import { Payload_Type, SERVICES, Service_Type } from './const';
+import { getFieldNameByType, splitByFirstSpace } from './helper';
 
-const selectService = async (context, page = 0) => {
+export const selectService = async (context: MessengerContext, page = 0) => {
   const NUM_PER_PAGE = 6;
   const startIndex = page * NUM_PER_PAGE;
   await context.sendGenericTemplate(
@@ -25,33 +26,37 @@ const selectService = async (context, page = 0) => {
           payload: `${Payload_Type.Select_Service}${startIndex + i}`,
         },
       ],
-    }))
+    })), {}
   );
 };
 
-const showActiveService = async (context) => {
-  const activeService = SERVICES[context.state.service];
+export const getActiveService = (context: MessengerContext) => {
+  return SERVICES[context.state.service as any]
+}
+
+export const showActiveService = async (context: MessengerContext) => {
+  const activeService = getActiveService(context);
   await context.sendText(
     `${activeService.name}\n${activeService.title}\n\n${activeService.help}\n\n${activeService.url}`
   );
 };
 
-const checkActiveService = async (context) => {
-  if (context.state.service < 0) {
+export const checkActiveService = async (context: MessengerContext) => {
+  if (context.state.service as any < 0) {
     await selectService(context);
     return false;
   }
   return true;
 };
 
-const clearServiceData = async (context) => {
+export const clearServiceData = async (context: MessengerContext) => {
   context.setState({
     ...context.state,
     query: {},
     context: [],
     data: {},
   });
-  const activeService = SERVICES[context.state.service];
+  const activeService = getActiveService(context);
   if (activeService.type === Service_Type.Chat) {
     await context.sendText('New conversation.');
   } else {
@@ -59,24 +64,24 @@ const clearServiceData = async (context) => {
   }
 };
 
-const setQueryForService = async (context, field, value) => {
+export const setQueryForService = async (context: MessengerContext, field: string, value: string) => {
   context.setState({
     ...context.state,
     query: {
-      ...context.state.query,
+      ...context.state.query as any,
       [field]: value,
     },
   });
   await context.sendText(`Setting ${field}`);
 };
 
-const setValueForQuery = async (context, type, value) => {
+export const setValueForQuery = async (context: MessengerContext, type: string, value: string) => {
   if (!(await checkActiveService(context))) {
     return;
   }
-  const activeService = SERVICES[context.state.service];
+  const activeService = getActiveService(context);
 
-  let fieldName;
+  let fieldName: string | undefined = undefined;
   let fieldValue = value;
 
   if (type === 'text') {
@@ -84,7 +89,7 @@ const setValueForQuery = async (context, type, value) => {
     textFieldName = textFieldName.toLowerCase();
     // Find this field name in params list
     const param = activeService.params.find(
-      (item) => item.name === textFieldName || item.alias === textFieldName
+      (item: any) => item.name === textFieldName || item.alias === textFieldName
     );
     if (param) {
       fieldName = param.name;
@@ -93,7 +98,7 @@ const setValueForQuery = async (context, type, value) => {
       if (param.type === 'select' && !fieldValue) {
         // Allow user to select an option
         await context.sendText(`Select ${fieldName}`, {
-          quickReplies: param.options.map((option) => ({
+          quickReplies: param.options.map((option: string) => ({
             contentType: 'text',
             title: option,
             payload: [Payload_Type.Select_Query_Option, fieldName, option].join(
@@ -115,13 +120,4 @@ const setValueForQuery = async (context, type, value) => {
   }
 
   await setQueryForService(context, fieldName, fieldValue);
-};
-
-module.exports = {
-  selectService,
-  showActiveService,
-  checkActiveService,
-  clearServiceData,
-  setValueForQuery,
-  setQueryForService,
 };

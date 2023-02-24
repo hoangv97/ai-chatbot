@@ -1,29 +1,29 @@
-const {
+import {
   createCompletionFromConversation,
   generateImage,
-} = require('./models/openai');
+} from './models/openai';
 
-const Payload_Type = {
+export const Payload_Type = {
   Select_Service: 'Select_Service_',
   Select_Query_Option: 'Select_Query_Option_',
   Select_Url_Action: 'Select_Url_Action_',
   Splitter: '|',
 };
 
-const Service_Type = {
+export const Service_Type = {
   Prediction: 'Prediction',
   Chat: 'chat',
   DallE: 'DallE',
 };
 
-const Output_Type = {
+export const Output_Type = {
   Image: 'image',
   SingleImage: 'single_image',
   Text: 'text',
   Transcription: 'transcription',
 };
 
-const SERVICES = [
+export const SERVICES: any[] = [
   {
     name: 'GPT-3',
     url: 'https://platform.openai.com/docs/models/gpt-3',
@@ -244,11 +244,4 @@ const SERVICES = [
     title: 'Bootstrapping Language-Image Pre-training',
     help: '',
   },
-].filter((item) => !item.hidden);
-
-module.exports = {
-  SERVICES,
-  Service_Type,
-  Output_Type,
-  Payload_Type,
-};
+].filter((item: any) => !item.hidden);
