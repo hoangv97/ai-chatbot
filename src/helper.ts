@@ -8,13 +8,13 @@ import path from 'path';
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const objectToJsonWithTruncatedUrls = (obj: any) => {
-  const MAX_URL_LENGTH = 50;
+  const MAX_STR_LENGTH = 50;
   return JSON.stringify(
     obj,
     (key, value) => {
-      if (typeof value === 'string' && value.startsWith('http')) {
-        return value.length > MAX_URL_LENGTH
-          ? value.slice(0, MAX_URL_LENGTH) + '...'
+      if (typeof value === 'string') {
+        return value.length > MAX_STR_LENGTH
+          ? value.slice(0, MAX_STR_LENGTH) + '...'
           : value;
       } else {
         return value;

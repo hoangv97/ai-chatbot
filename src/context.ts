@@ -5,29 +5,35 @@ import { getFieldNameByType, splitByFirstSpace } from './helper';
 export const selectService = async (context: MessengerContext, page = 0) => {
   const NUM_PER_PAGE = 6;
   const startIndex = page * NUM_PER_PAGE;
-  await context.sendGenericTemplate(
-    SERVICES.slice(startIndex, startIndex + NUM_PER_PAGE).map((service, i) => ({
-      title: service.name,
-      subtitle: service.title,
-      imageUrl:
-        service.imageUrl ||
-        'https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MjN8fHRlY2hub2xvZ3l8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60',
-      defaultAction: {
-        type: 'web_url',
-        url: service.url,
-        webviewHeightRatio: 'tall',
-        // messengerExtensions: true,
-        // fallbackUrl: service.url,
-      },
-      buttons: [
-        {
-          type: 'postback',
-          title: 'Select',
-          payload: `${Payload_Type.Select_Service}${startIndex + i}`,
+  const services = SERVICES.slice(startIndex, startIndex + NUM_PER_PAGE)
+  if (!services.length) {
+    await context.sendText('No services.')
+  }
+  else {
+    await context.sendGenericTemplate(
+      services.map((service, i) => ({
+        title: service.name,
+        subtitle: service.title,
+        imageUrl:
+          service.imageUrl ||
+          'https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MjN8fHRlY2hub2xvZ3l8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60',
+        defaultAction: {
+          type: 'web_url',
+          url: service.url,
+          webviewHeightRatio: 'tall',
+          // messengerExtensions: true,
+          // fallbackUrl: service.url,
         },
-      ],
-    })), {}
-  );
+        buttons: [
+          {
+            type: 'postback',
+            title: 'Select',
+            payload: `${Payload_Type.Select_Service}${startIndex + i}`,
+          },
+        ],
+      })), {}
+    );
+  }
 };
 
 export const getActiveService = (context: MessengerContext) => {

@@ -4,58 +4,82 @@ import { Payload_Type } from '../const';
 import { getReadableContentFromUrl } from '../helper';
 import { createCompletion, GPT3_MAX_TOKENS } from './openai';
 
-export const URL_ACTIONS = ['Summarize', 'Explain'];
+export const URL_ACTIONS = [
+  {
+    title: 'Summarize',
+    subtitle: 'Summarize in a sentence',
+    prompt: (content: string) => `Summarize this article in 1 sentence: ${content}`
+  },
+  {
+    title: 'Explain',
+    subtitle: 'Explain in 3 sentences',
+    prompt: (content: string) => `Explain this article in 3 sentences: ${content}`
+  },
+  {
+    title: 'Key points',
+    subtitle: 'Key points of this article',
+    prompt: (content: string) => `Few key points of this article: ${content}`
+  },
+  {
+    title: 'Additional reading',
+    subtitle: 'Additional research or reading',
+    prompt: (content: string) => `5 additional research or reading I need to deepen my understanding of the topic covered in this article: ${content}`
+  },
+  {
+    title: 'Categories',
+    subtitle: 'Categories of this article',
+    prompt: (content: string) => `Categories of this article: ${content}`
+  },
+  {
+    title: 'Tones',
+    subtitle: 'Tones of this article',
+    prompt: (content: string) => `Tone of this article: ${content}`
+  },
+];
 
 export const sendUrlActions = async (context: MessengerContext) => {
-  await context.sendText(`Select an action`, {
-    quickReplies: URL_ACTIONS.map((option) => ({
-      contentType: 'text',
-      title: option,
-      payload: [Payload_Type.Select_Url_Action, option].join(
-        Payload_Type.Splitter
-      ),
-    })),
-  });
+  await context.sendGenericTemplate(URL_ACTIONS.map((option, i) => ({
+    title: option.title,
+    subtitle: option.subtitle,
+    buttons: [
+      {
+        type: 'postback',
+        title: 'Select',
+        payload: [Payload_Type.Select_Url_Action, i].join(
+          Payload_Type.Splitter
+        ),
+      },
+    ],
+  })), {})
 };
 
-const processByAction = async (url: string, action = 'Summarize', sentences = 1) => {
-  const content = await getReadableContentFromUrl(url);
-
-  let prompt;
-  if (action === 'Explain') {
-    prompt = `Explain this article in ${sentences} sentences or less: ${content}`;
-  } else {
-    prompt = `Summarize this article in ${sentences} sentences or less: ${content}`;
-  }
-  const tokens = encode(prompt).length;
-  const result: any = { url, tokens, content };
-
-  if (tokens >= GPT3_MAX_TOKENS) {
-    result.message = 'Page content is too long.';
-  } else if (!content) {
-    result.message = 'Page content is empty.';
-  } else {
-    const completion = await createCompletion(prompt);
-    result.completion = completion;
-  }
-
-  return result;
-};
-
-export const handleUrl = async (context: MessengerContext, action: string) => {
-  const { url } = context.state.data as any;
+export const handleUrl = async (context: MessengerContext, actionIndex: string) => {
+  let { url } = context.state.data as any;
   if (!url) {
-    await context.sendText(`Error. URL not found.`);
+    await context.sendText(`Sorry. URL not found.`);
   } else {
-    let sentences = 1;
-    if (action === 'Explain') {
-      sentences = 3;
+    const action = URL_ACTIONS[parseInt(actionIndex)]
+
+    const content = await getReadableContentFromUrl(url);
+    if (!content) {
+      await context.sendText(`Sorry. Page content is empty.`);
+      return
     }
-    const result = await processByAction(url, action, sentences);
-    if (!result.completion) {
-      await context.sendText(`Error. ${result.message}`);
+
+    const prompt = action.prompt(content)
+    const tokens = encode(prompt).length;
+
+    if (tokens >= GPT3_MAX_TOKENS) {
+      await context.sendText(`Sorry. Page content is too long.`);
+      return
+    }
+
+    const completion = await createCompletion(prompt);
+
+    if (!completion) {
+      await context.sendText(`Sorry. Can not get the result.`);
     } else {
-      await context.sendText(result.completion);
+      await context.sendText(completion);
     }
     await sendUrlActions(context);
   }
