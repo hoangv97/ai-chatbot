@@ -7,15 +7,18 @@ import path from 'path';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+export const truncate = (str: string, maxLength: number) => {
+  return str.length > maxLength
+    ? str.slice(0, maxLength) + '...'
+    : str
+}
+
 export const objectToJsonWithTruncatedUrls = (obj: any) => {
-  const MAX_STR_LENGTH = 50;
   return JSON.stringify(
     obj,
     (key, value) => {
       if (typeof value === 'string') {
-        return value.length > MAX_STR_LENGTH
-          ? value.slice(0, MAX_STR_LENGTH) + '...'
-          : value;
+        return truncate(value, 50);
       } else {
         return value;
       }
@@ -80,7 +83,7 @@ export async function getReadableContentFromUrl(url: string) {
     const doc = new JSDOM(response.data, { url }).window.document;
     const reader = new Readability(doc);
     const article = reader.parse();
-    const readableContent = article?.textContent;
+    const readableContent = article?.textContent?.trim();
     return readableContent;
   } catch (error) {
     console.error(error);

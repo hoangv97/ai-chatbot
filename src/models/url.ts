@@ -1,7 +1,7 @@
 import { MessengerContext } from 'bottender';
 import { encode } from 'gpt-3-encoder';
 import { Payload_Type } from '../const';
-import { getReadableContentFromUrl } from '../helper';
+import { truncate } from '../helper';
 import { createCompletion, GPT3_MAX_TOKENS } from './openai';
 
 export const URL_ACTIONS = [
@@ -35,6 +35,12 @@ export const URL_ACTIONS = [
     subtitle: 'Tones of this article',
     prompt: (content: string) => `Tone of this article: ${content}`
   },
+  {
+    title: 'Preview',
+    subtitle: `Show the article's preview`,
+    type: 'preview',
+    prompt: (content: string) => ``
+  },
 ];
 
 export const sendUrlActions = async (context: MessengerContext) => {
@@ -51,36 +57,37 @@ export const sendUrlActions = async (context: MessengerContext) => {
       },
     ],
   })), {})
+  await context.sendText(`Choose one above or ask me about this article.`);
 };
 
-export const handleUrl = async (context: MessengerContext, actionIndex: string) => {
-  let { url } = context.state.data as any;
+export const handleUrlPayload = async (context: MessengerContext, actionIndex: string) => {
+  let { url, content } = context.state.data as any;
   if (!url) {
-    await context.sendText(`Sorry. URL not found.`);
+    await context.sendText(`Sorry! URL not found.`);
   } else {
     const action = URL_ACTIONS[parseInt(actionIndex)]
 
-    const content = await getReadableContentFromUrl(url);
-    if (!content) {
-      await context.sendText(`Sorry. Page content is empty.`);
-      return
+    let completion: string | null | undefined = truncate(content, 500)
+
+    if (!['preview'].includes(action.type || '')) {
+      const prompt = action.prompt(content)
+      const tokens = encode(prompt).length;
+
+      if (tokens >= GPT3_MAX_TOKENS) {
+        await context.sendText(`Sorry! Page content is too long.`);
+        return
+      }
+
+      completion = await createCompletion(prompt);
     }
-
-    const prompt = action.prompt(content)
-    const tokens = encode(prompt).length;
-
-    if (tokens >= GPT3_MAX_TOKENS) {
-      await context.sendText(`Sorry. Page content is too long.`);
-      return
-    }
-
-    const completion = await createCompletion(prompt);
 
     if (!completion) {
-      await context.sendText(`Sorry. Can not get the result.`);
+      await context.sendText(`Sorry! Can not get the result.`);
     } else {
       await context.sendText(completion);
     }
     await sendUrlActions(context);
+
+    return content
   }
 };

@@ -4,9 +4,9 @@ import { Payload_Type, SERVICES, Service_Type } from './const';
 import {
   checkActiveService, clearServiceData, getActiveService, selectService, setQueryForService, setValueForQuery, showActiveService
 } from './context';
-import { objectToJsonWithTruncatedUrls } from './helper';
+import { getReadableContentFromUrl, objectToJsonWithTruncatedUrls } from './helper';
 import { runPrediction } from './models/prediction';
-import { handleUrl, sendUrlActions } from './models/url';
+import { handleUrlPayload, sendUrlActions } from './models/url';
 
 async function Command(
   context: MessengerContext,
@@ -16,7 +16,6 @@ async function Command(
     },
   }: any
 ) {
-  // await context.sendText(`Executing command ${command} with content: ${content}`);
   switch (command.toLowerCase()) {
     case 'h':
     case 'help':
@@ -51,17 +50,29 @@ async function Command(
       await context.sendText(objectToJsonWithTruncatedUrls(context.state));
       break;
     default:
-      await context.sendText('Sorry. Command not found.');
+      await context.sendText('Sorry! Command not found.');
       break;
   }
 }
 
 async function HandleUrl(context: MessengerContext) {
+  const url = context.event.text
+  const content = await getReadableContentFromUrl(url);
+  if (!content) {
+    await context.sendText(`Sorry! Page content is empty.`);
+    return
+  }
+
   context.setState({
     ...context.state,
+    service: SERVICES.findIndex(s => s.type === Service_Type.Chat),
+    context: [
+      { actor: 'USER', content: `Discuss about this article: ${content}` },
+    ],
     data: {
       ...context.state.data as any,
-      url: context.event.text,
+      url,
+      content,
     },
   });
   await sendUrlActions(context);
@@ -87,7 +98,7 @@ async function Others(context: MessengerContext) {
     ]);
     if (!response) {
       await context.sendText(
-        'An error occurred. Please try again or create new conversation by `/c`'
+        'Sorry! Please try again or create new conversation by `/c`'
       );
       return;
     }
@@ -129,7 +140,7 @@ async function Payload(context: MessengerContext) {
   // Select a param option for url action
   else if (payload.startsWith(Payload_Type.Select_Url_Action)) {
     const [_, value] = payload.split(Payload_Type.Splitter);
-    handleUrl(context, value);
+    handleUrlPayload(context, value);
   }
 }
 
