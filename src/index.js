@@ -1,15 +1,16 @@
 const { router, text, payload, messenger } = require('bottender/router');
 const { SERVICES, Service_Type, Payload_Type } = require('./const');
 const {
-  objectToJsonWithTruncatedUrls,
   selectService,
   checkActiveService,
   showActiveService,
   clearServiceData,
   setValueForQuery,
   setQueryForService,
-} = require('./helper');
+} = require('./context');
+const { objectToJsonWithTruncatedUrls } = require('./helper');
 const { runPrediction } = require('./models/prediction');
+const { handleUrl, sendUrlActions } = require('./models/url');
 
 async function Command(
   context,
@@ -24,7 +25,7 @@ async function Command(
     case 'h':
     case 'help':
       await context.sendText(
-        'Commands\n[s] Select a service + page\n[a] Active service\n[c] Clear context\n[d] Debug'
+        'Commands\n[s] Services & page\n[a] Active service\n[c] Clear context\n[d] Debug'
       );
       break;
     case 's':
@@ -57,6 +58,17 @@ async function Command(
       await context.sendText('Sorry. Command not found.');
       break;
   }
+}
+
+async function HandleUrl(context, props) {
+  context.setState({
+    ...context.state,
+    data: {
+      ...context.state.data,
+      url: context.event.text,
+    },
+  });
+  await sendUrlActions(context);
 }
 
 async function Others(context, props) {
@@ -117,6 +129,11 @@ async function Payload(context, props) {
   else if (payload.startsWith(Payload_Type.Select_Query_Option)) {
     const [_, field, value] = payload.split(Payload_Type.Splitter);
     setQueryForService(context, field, value);
+  }
+  // Select a param option for url action
+  else if (payload.startsWith(Payload_Type.Select_Url_Action)) {
+    const [_, value] = payload.split(Payload_Type.Splitter);
+    handleUrl(context, value);
   }
 }
 
@@ -193,7 +210,10 @@ module.exports = async function App(context, props) {
   }
   return router([
     payload('*', Payload),
-    // return the `Command` action when receiving "/join", "/invite", or "/whatever" text messages
+    text(
+      /^https?:\/\/(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z0-9]+(?:\/[^\s]*)?$/i,
+      HandleUrl
+    ),
     text(/^[/.](?<command>\w+)(?:\s(?<content>.+))?/i, Command),
     text(/^ok$/i, Submit),
     text('*', Others),

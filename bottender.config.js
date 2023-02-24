@@ -22,8 +22,10 @@ module.exports = {
   },
   initialState: {
     service: -1,
-    query: {},
-    context: [],
+    settings: {}, // save app settings
+    query: {}, // save query for prediction
+    context: [], // save conversations data for chatbot
+    data: {}, // save other data
   },
   channels: {
     messenger: {

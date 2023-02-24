@@ -6,6 +6,7 @@ const {
 const Payload_Type = {
   Select_Service: 'Select_Service_',
   Select_Query_Option: 'Select_Query_Option_',
+  Select_Url_Action: 'Select_Url_Action_',
   Splitter: '|',
 };
 

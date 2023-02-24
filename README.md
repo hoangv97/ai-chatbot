@@ -1,10 +1,17 @@
-This project was bootstrapped with
-[Bottender](https://github.com/Yoctol/bottender) init script.
+# Messenger bot with AI
 
-## Sending Feedback
+## Installation
 
-Always feel free to open an issue to
-[Bottender](https://github.com/Yoctol/bottender/issues) repository.
+```sh
+mkdir downloads
+
+cp .env.example .env
+# Edit .env
+
+yarn
+
+yarn run start
+```
 
 ## Configuration
 
