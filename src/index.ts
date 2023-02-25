@@ -226,7 +226,7 @@ export default async function App(
   return router([
     payload('*', Payload),
     text(
-      /^https?:\/\/(?:www\.)?[a-zA-Z0-9-]+\.[a-zA-Z0-9]+(?:\/[^\s]*)?$/i,
+      /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i,
       HandleUrl
     ),
     text(/^[/.](?<command>\w+)(?:\s(?<content>.+))?/i, Command),
