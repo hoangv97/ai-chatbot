@@ -1,6 +1,8 @@
+import axios from 'axios';
 import { MessengerContext } from 'bottender';
 import { encode } from 'gpt-3-encoder';
 import { Payload_Type } from '../const';
+import { selectService } from '../context';
 import { truncate } from '../helper';
 import { createCompletion, GPT3_MAX_TOKENS } from './openai';
 
@@ -91,3 +93,36 @@ export const handleUrlPayload = async (context: MessengerContext, actionIndex: s
     return content
   }
 };
+
+export const handleUrlPrompt = async (context: MessengerContext, prompt: string) => {
+  try {
+    let { url } = context.state.data as any;
+    if (!url) {
+      await context.sendText(`Sorry! URL not found.`);
+      await selectService(context)
+      return
+    }
+    const response = await axios({
+      method: 'GET',
+      url: `${process.env.MY_AI_API_URL}/api/url`,
+      params: {
+        url,
+        p: prompt,
+      }
+    });
+    if (response.status !== 200) {
+      console.error(response.data);
+      await context.sendText('Error! Please try again.');
+      return null;
+    }
+    const { result } = response.data;
+    if (result) {
+      await context.sendText(response.data.result);
+    } else {
+      await context.sendText('Error! Please try again.');
+    }
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}

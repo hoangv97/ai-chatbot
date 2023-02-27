@@ -1,14 +1,14 @@
 import { Action, MessengerContext } from 'bottender';
 import { payload, router, text } from 'bottender/router';
 import { encode } from 'gpt-3-encoder';
-import { Payload_Type, SERVICES, Service_Type } from './const';
+import { Payload_Type, SERVICES, Service_Type, URL_SERVICE_ID } from './const';
 import {
   checkActiveService, clearServiceData, getActiveService, selectService, setQueryForService, setValueForQuery, showActiveService
 } from './context';
 import { getReadableContentFromUrl, objectToJsonWithTruncatedUrls } from './helper';
 import { GPT3_MAX_TOKENS } from './models/openai';
 import { runPrediction } from './models/prediction';
-import { handleUrlPayload, sendUrlActions } from './models/url';
+import { handleUrlPayload, handleUrlPrompt, sendUrlActions } from './models/url';
 
 async function Command(
   context: MessengerContext,
@@ -43,7 +43,7 @@ async function Command(
       break;
     case 'c':
     case 'clear':
-      if (await checkActiveService(context)) {
+      if ([URL_SERVICE_ID].includes(context.state.service as number) || await checkActiveService(context)) {
         await clearServiceData(context);
       }
       break;
@@ -59,32 +59,23 @@ async function Command(
 
 async function HandleUrl(context: MessengerContext) {
   const url = context.event.text
-  const content = await getReadableContentFromUrl(url);
-  if (!content) {
-    await context.sendText(`Sorry! Page content is empty.`);
-    return
-  }
-  if (encode(content).length >= GPT3_MAX_TOKENS - 200) {
-    await context.sendText(`Sorry! Page content is too long.`);
-    return
-  }
 
   context.setState({
     ...context.state,
-    service: SERVICES.findIndex(s => s.type === Service_Type.Chat),
-    context: [
-      { actor: 'USER', content: `Discuss about this article: ${content}` },
-    ],
+    service: URL_SERVICE_ID,
     data: {
       ...context.state.data as any,
       url,
-      content,
     },
   });
-  await sendUrlActions(context);
+  await context.sendText('Ask me anything about this link.');
 }
 
 async function Others(context: MessengerContext) {
+  if (context.state.service === URL_SERVICE_ID) {
+    handleUrlPrompt(context, context.event.text);
+    return
+  }
   if (!(await checkActiveService(context))) {
     return;
   }

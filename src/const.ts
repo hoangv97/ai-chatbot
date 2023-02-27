@@ -23,6 +23,8 @@ export const Output_Type = {
   Transcription: 'transcription',
 };
 
+export const URL_SERVICE_ID = -2;
+
 export const SERVICES: any[] = [
   {
     name: 'GPT-3',

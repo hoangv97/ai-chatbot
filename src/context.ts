@@ -63,7 +63,7 @@ export const clearServiceData = async (context: MessengerContext) => {
     data: {},
   });
   const activeService = getActiveService(context);
-  if (activeService.type === Service_Type.Chat) {
+  if (activeService && activeService.type === Service_Type.Chat) {
     await context.sendText('New conversation.');
   } else {
     await context.sendText('Clearing data.');
