@@ -1,14 +1,14 @@
 import { Action, MessengerContext } from 'bottender';
 import { payload, router, text } from 'bottender/router';
-import { encode } from 'gpt-3-encoder';
-import { Payload_Type, SERVICES, Service_Type, URL_SERVICE_ID } from './const';
+import { Payload_Type, Service_Type, URL_SERVICE_ID } from './const';
 import {
   checkActiveService, clearServiceData, getActiveService, selectService, setQueryForService, setValueForQuery, showActiveService
 } from './context';
-import { getReadableContentFromUrl, objectToJsonWithTruncatedUrls } from './helper';
-import { GPT3_MAX_TOKENS } from './models/openai';
+import { objectToJsonWithTruncatedUrls } from './helper';
+import { handleAudioForChat } from './models/audio';
 import { runPrediction } from './models/prediction';
-import { handleUrlPayload, handleUrlPrompt, sendUrlActions } from './models/url';
+import { handleChat } from './models/text';
+import { handleUrlPayload, handleUrlPrompt } from './models/url';
 
 async function Command(
   context: MessengerContext,
@@ -73,7 +73,7 @@ async function HandleUrl(context: MessengerContext) {
 
 async function Others(context: MessengerContext) {
   if (context.state.service === URL_SERVICE_ID) {
-    handleUrlPrompt(context, context.event.text);
+    await handleUrlPrompt(context, context.event.text);
     return
   }
   if (!(await checkActiveService(context))) {
@@ -83,31 +83,11 @@ async function Others(context: MessengerContext) {
   if (
     [Service_Type.Prediction, Service_Type.DallE].includes(activeService.type)
   ) {
-    setValueForQuery(context, 'text', context.event.text);
+    await setValueForQuery(context, 'text', context.event.text);
   }
   // Chatbot
   else if (activeService.type === Service_Type.Chat) {
-    const question = context.event.text;
-    const response = await activeService.getAnswer(context, [
-      ...context.state.context as any,
-      { actor: 'USER', content: question },
-      { actor: 'AI', content: '' },
-    ]);
-    if (!response) {
-      await context.sendText(
-        'Sorry! Please try again or create new conversation by `/c`'
-      );
-      return;
-    }
-    context.setState({
-      ...context.state,
-      context: [
-        ...context.state.context as any,
-        { actor: 'USER', content: question },
-        { actor: 'AI', content: response },
-      ],
-    });
-    await context.sendText(response);
+    await handleChat(context, context.event.text)
   }
 }
 
@@ -132,12 +112,12 @@ async function Payload(context: MessengerContext) {
   // Select a param option
   else if (payload.startsWith(Payload_Type.Select_Query_Option)) {
     const [_, field, value] = payload.split(Payload_Type.Splitter);
-    setQueryForService(context, field, value);
+    await setQueryForService(context, field, value);
   }
   // Select a param option for url action
   else if (payload.startsWith(Payload_Type.Select_Url_Action)) {
     const [_, value] = payload.split(Payload_Type.Splitter);
-    handleUrlPayload(context, value);
+    await handleUrlPayload(context, value);
   }
 }
 
@@ -149,19 +129,25 @@ async function HandleImage(context: MessengerContext) {
   if (
     [Service_Type.Prediction, Service_Type.DallE].includes(activeService.type)
   ) {
-    setValueForQuery(context, 'image', context.event.image.url);
+    await setValueForQuery(context, 'image', context.event.image.url);
   } else {
     await context.sendText(`received the image: ${context.event.image.url}`);
   }
 }
 
 async function HandleAudio(context: MessengerContext) {
+  if (context.state.service === URL_SERVICE_ID) {
+    await handleAudioForChat(context)
+    return
+  }
   if (!(await checkActiveService(context))) {
     return;
   }
   const activeService = getActiveService(context);
   if ([Service_Type.Prediction].includes(activeService.type)) {
-    setValueForQuery(context, 'audio', context.event.audio.url);
+    await setValueForQuery(context, 'audio', context.event.audio.url);
+  } else if ([Service_Type.Chat].includes(activeService.type)) {
+    await handleAudioForChat(context)
   } else {
     await context.sendText(`received the audio: ${context.event.audio.url}`);
   }
@@ -188,9 +174,9 @@ async function Submit(context: MessengerContext) {
   }
   const activeService = getActiveService(context);
   if ([Service_Type.Prediction].includes(activeService.type)) {
-    runPrediction(context);
+    await runPrediction(context);
   } else if ([Service_Type.DallE].includes(activeService.type)) {
-    activeService.getAnswer(context);
+    await activeService.getAnswer(context);
   } else {
     Others(context);
   }

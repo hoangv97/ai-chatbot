@@ -4,7 +4,7 @@ import { Output_Type, SERVICES } from '../const';
 import { getActiveService } from '../context';
 import { sleep } from '../helper';
 
-async function postPrediction(context: MessengerContext, version: string, input: any) {
+export async function postPrediction(context: MessengerContext, version: string, input: any) {
   try {
     // console.log(input);
     const response = await axios({
@@ -33,7 +33,7 @@ async function postPrediction(context: MessengerContext, version: string, input:
   }
 }
 
-async function getPrediction(context: MessengerContext, id: string) {
+export async function getPrediction(context: MessengerContext, id: string) {
   try {
     const response = await axios({
       method: 'GET',
