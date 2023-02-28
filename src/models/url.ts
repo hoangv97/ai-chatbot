@@ -105,8 +105,8 @@ export const handleUrlPrompt = async (context: MessengerContext, prompt: string)
 
     const summarizeTexts = ['summarize', 'tóm tắt']
     let t
-    summarizeTexts.forEach(t => {
-      if (prompt.toLowerCase().startsWith(t)) {
+    summarizeTexts.forEach(text => {
+      if (prompt.toLowerCase().startsWith(text)) {
         t = 'summarize'
       }
     })
