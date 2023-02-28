@@ -102,11 +102,21 @@ export const handleUrlPrompt = async (context: MessengerContext, prompt: string)
       await selectService(context)
       return
     }
+
+    const summarizeTexts = ['summarize', 'tóm tắt']
+    let t
+    summarizeTexts.forEach(t => {
+      if (prompt.toLowerCase().startsWith(t)) {
+        t = 'summarize'
+      }
+    })
+
     const response = await axios({
       method: 'GET',
       url: `${process.env.MY_AI_API_URL}/api/url`,
       params: {
         url,
+        t,
         p: prompt,
       }
     });
