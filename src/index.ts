@@ -1,11 +1,12 @@
 import { Action, MessengerContext } from 'bottender';
-import { payload, router, text } from 'bottender/router';
+import { payload, router, text, messenger } from 'bottender/router';
+import { getMessage } from './api/messenger';
 import { Payload_Type, Service_Type, URL_SERVICE_ID } from './const';
 import {
   checkActiveService, clearServiceData, getActiveService, selectService, setQueryForService, setValueForQuery, showActiveService
 } from './context';
 import { objectToJsonWithTruncatedUrls } from './helper';
-import { handleAudioForChat } from './models/audio';
+import { handleAudioForChat, handleTextToSpeech } from './models/audio';
 import { runPrediction } from './models/prediction';
 import { handleChat } from './models/text';
 import { handleUrlPayload, handleUrlPrompt } from './models/url';
@@ -88,6 +89,14 @@ async function Others(context: MessengerContext) {
   // Chatbot
   else if (activeService.type === Service_Type.Chat) {
     await handleChat(context, context.event.text)
+  }
+}
+
+async function HandleReactionReact(context: MessengerContext) {
+  const { mid } = context.event.reaction
+  if (mid) {
+    const message = await getMessage(mid)
+    await handleTextToSpeech(context, message)
   }
 }
 
@@ -201,6 +210,7 @@ export default async function App(
     return HandleLocation;
   }
   return router([
+    messenger.reaction.react(HandleReactionReact),
     payload('*', Payload),
     text(
       /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i,

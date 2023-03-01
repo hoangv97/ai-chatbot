@@ -1,6 +1,7 @@
 const bodyParser = require('body-parser');
 const express = require('express');
 const { bottender } = require('bottender');
+const MongoClient = require('mongodb').MongoClient;
 
 const app = bottender({
   dev: process.env.NODE_ENV !== 'production',
@@ -21,6 +22,21 @@ app.prepare().then(() => {
   server.use(bodyParser.urlencoded({ extended: false, verify }));
 
   // your custom route
+  server.post('/webhooks/resemble', async (req, res) => {
+    try {
+      const { id } = req.body;
+      const client = new MongoClient(process.env.MONGO_URL || '');
+      await client.connect();
+      const result = await client
+        .db('messenger')
+        .collection('resemble')
+        .updateOne({ id }, { $set: req.body }, { upsert: true });
+      console.log(`received resemble clip: ${id}`);
+    } catch (e) {
+      console.log(e);
+    }
+  });
+
   server.get('/api', (req, res) => {
     res.json({ ok: true });
   });
