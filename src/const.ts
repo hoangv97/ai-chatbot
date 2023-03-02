@@ -27,13 +27,13 @@ export const URL_SERVICE_ID = -2;
 
 export const SERVICES: any[] = [
   {
-    name: 'GPT-3',
-    url: 'https://platform.openai.com/docs/models/gpt-3',
+    name: 'ChatGPT',
+    url: 'https://platform.openai.com/docs/guides/chat/introduction',
     imageUrl:
       'https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MjN8fHRlY2hub2xvZ3l8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60',
     type: Service_Type.Chat,
     getAnswer: createCompletionFromConversation,
-    title: 'Text completion from OpenAI',
+    title: 'Chat completion from OpenAI',
     help: 'Type `/c` to create new conversation.',
   },
   {

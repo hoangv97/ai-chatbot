@@ -7,8 +7,28 @@ import { getPrediction, postPrediction } from "./prediction";
 import { handleChat } from "./text";
 import { handleUrlPrompt } from "./url";
 import { MongoClient } from 'mongodb'
+import { getTranscription } from "./openai";
 
 export const handleAudioForChat = async (context: MessengerContext) => {
+  const transcription = await getTranscription(context.event.audio.url)
+  if (!transcription) {
+    await context.sendText(`Error getting transcription!`);
+    return
+  }
+  await context.sendText(`"${transcription}"`);
+
+  if (context.state.service === URL_SERVICE_ID) {
+    await handleUrlPrompt(context, transcription);
+    return
+  }
+
+  const activeService = getActiveService(context);
+  if (activeService.type === Service_Type.Chat) {
+    await handleChat(context, transcription)
+  }
+}
+
+export const handleAudioForChatV0 = async (context: MessengerContext) => {
   const transcriptionService = SERVICES.find(s => s.output_type === Output_Type.Transcription)
 
   let prediction = await postPrediction(

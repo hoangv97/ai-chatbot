@@ -5,8 +5,7 @@ export const handleChat = async (context: MessengerContext, text: string) => {
   const activeService = getActiveService(context);
   const response = await activeService.getAnswer(context, [
     ...context.state.context as any,
-    { actor: 'USER', content: text },
-    { actor: 'AI', content: '' },
+    { role: 'user', content: text },
   ]);
   if (!response) {
     await context.sendText(
@@ -19,8 +18,8 @@ export const handleChat = async (context: MessengerContext, text: string) => {
     ...context.state,
     context: [
       ...context.state.context as any,
-      { actor: 'USER', content: text },
-      { actor: 'AI', content: response },
+      { role: 'user', content: text },
+      { role: 'assistant', content: response },
     ],
   });
 }

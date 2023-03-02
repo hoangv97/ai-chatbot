@@ -80,7 +80,7 @@ export const handleUrlPayload = async (context: MessengerContext, actionIndex: s
         return
       }
 
-      completion = await createCompletion(prompt);
+      // completion = await createCompletion(prompt);
     }
 
     if (!completion) {

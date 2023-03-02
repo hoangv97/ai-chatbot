@@ -1,7 +1,6 @@
 import { MessengerContext } from 'bottender';
 import fs from 'fs';
-import { encode } from 'gpt-3-encoder';
-import { Configuration, OpenAIApi } from 'openai';
+import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
 import { downloadFile } from '../helper';
 
 const configuration = new Configuration({
@@ -10,6 +9,8 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export const GPT3_MAX_TOKENS = 4096;
+
+const downloadsPath = './downloads';
 
 const handleError = async (context: MessengerContext, error: any) => {
   let message;
@@ -24,32 +25,39 @@ const handleError = async (context: MessengerContext, error: any) => {
   }
 };
 
-export const createCompletion = async (prompt: string) => {
-  const max_tokens = GPT3_MAX_TOKENS - encode(prompt).length;
-  if (max_tokens < 0) {
-    return null;
-  }
-  const response = await openai.createCompletion({
-    prompt,
-    max_tokens,
-    model: 'text-davinci-003',
+export const createCompletion = async (messages: any[]) => {
+  const response = await openai.createChatCompletion({
+    model: "gpt-3.5-turbo",
+    messages,
   });
-  return response.data.choices[0].text?.trim();
+  return response.data.choices;
 };
 
-export const createCompletionFromConversation = async (context: MessengerContext, messages: any[]) => {
-  const prompt =
-    'I am a friendly artificial intelligence.\n' +
-    messages.map((m) => `${m.actor}: ${m.content}`).join('\n');
-
+export const createCompletionFromConversation = async (context: MessengerContext, messages: ChatCompletionRequestMessage[]) => {
   try {
-    const response = await createCompletion(prompt);
-    return response;
+    const response = await createCompletion(messages);
+    return response[0].message?.content;
   } catch (e) {
     handleError(context, e);
     return null;
   }
 };
+
+const deleteDownloadFile = (filePath: string) => {
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.log(err)
+    };
+    // console.log(`${filePath} was deleted`);
+  })
+}
+
+export const getTranscription = async (url: string) => {
+  const filePath = await downloadFile(url, downloadsPath);
+  const response = await openai.createTranscription(fs.createReadStream(filePath) as any, 'whisper-1');
+  deleteDownloadFile(filePath)
+  return response.data.text
+}
 
 const createImage = async ({ prompt, n }: any) => {
   const response = await openai.createImage({
@@ -61,29 +69,30 @@ const createImage = async ({ prompt, n }: any) => {
   return response.data.data;
 };
 
-const imageDownloadsPath = './downloads';
 
 const createImageEdit = async ({ prompt, image, n }: any) => {
-  const imagePath = await downloadFile(image, imageDownloadsPath);
+  const filePath = await downloadFile(image, downloadsPath);
   const response = await openai.createImageEdit(
-    fs.createReadStream(imagePath) as any,
-    {} as any, // mask is optional
+    fs.createReadStream(filePath) as any,
     prompt,
+    undefined,
     n ? parseInt(n) : undefined,
     '512x512',
     'url'
   );
+  deleteDownloadFile(filePath)
   return response.data.data;
 };
 
 const createImageVariation = async ({ image, n }: any) => {
-  const imagePath = await downloadFile(image, imageDownloadsPath);
+  const filePath = await downloadFile(image, downloadsPath);
   const response = await openai.createImageVariation(
-    fs.createReadStream(imagePath) as any,
+    fs.createReadStream(filePath) as any,
     n ? parseInt(n) : undefined,
     '512x512',
     'url'
   );
+  deleteDownloadFile(filePath)
   return response.data.data;
 };
 
@@ -91,10 +100,10 @@ export const generateImage = async (context: MessengerContext) => {
   const { model, ...others } = context.state.query as any;
   let createFunc;
   switch (model) {
-    // case 'e':
-    // case 'edit':
-    //   createFunc = createImageEdit;
-    //   break;
+    case 'e':
+    case 'edit':
+      createFunc = createImageEdit;
+      break;
     case 'v':
     case 'variation':
       createFunc = createImageVariation;
