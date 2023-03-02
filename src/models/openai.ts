@@ -1,5 +1,6 @@
 import { MessengerContext } from 'bottender';
 import fs from 'fs';
+import { encode } from 'gpt-3-encoder';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
 import { downloadFile } from '../helper';
 
@@ -25,17 +26,26 @@ const handleError = async (context: MessengerContext, error: any) => {
   }
 };
 
-export const createCompletion = async (messages: any[]) => {
+export const createCompletion = async (messages: any[], max_tokens?: number) => {
   const response = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages,
+    max_tokens,
   });
   return response.data.choices;
 };
 
+const getTokens = (messages: ChatCompletionRequestMessage[]) => {
+  const tokens = messages.reduce((prev, curr) => prev + encode(curr.content).length, 0)
+  // console.log(tokens)
+  return tokens;
+}
+
 export const createCompletionFromConversation = async (context: MessengerContext, messages: ChatCompletionRequestMessage[]) => {
   try {
-    const response = await createCompletion(messages);
+    const response_max_tokens = 500
+    const max_tokens = Math.min(getTokens(messages) + response_max_tokens, GPT3_MAX_TOKENS)
+    const response = await createCompletion(messages, max_tokens);
     return response[0].message?.content;
   } catch (e) {
     handleError(context, e);
