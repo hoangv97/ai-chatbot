@@ -8,7 +8,7 @@ import {
 import { objectToJsonWithTruncatedUrls } from './helper';
 import { handleAudioForChat, handleTextToSpeech } from './models/audio';
 import { runPrediction } from './models/prediction';
-import { handleChat } from './models/text';
+import { handleChat, handleChatSystemPayload, selectChatSystems } from './models/text';
 import { handleUrlPayload, handleUrlPrompt } from './models/url';
 
 async function Command(
@@ -23,7 +23,7 @@ async function Command(
     case 'h':
     case 'help':
       await context.sendText(
-        'Commands\n[s] Services & page\n[a] Active service\n[c] Clear context\n[d] Debug'
+        'Commands\n[s] Services & page\n[a] Active service\n[c] Clear context\n[d] Debug\n[m] My assistants\n\nAssistants settings: https://codepen.io/viethoang012/full/xxaXQbW'
       );
       break;
     case 's':
@@ -51,6 +51,9 @@ async function Command(
     case 'd':
     case 'debug':
       await context.sendText(objectToJsonWithTruncatedUrls(context.state));
+      break;
+    case 'm':
+      await selectChatSystems(context)
       break;
     default:
       await context.sendText('Sorry! Command not found.');
@@ -127,6 +130,11 @@ async function Payload(context: MessengerContext) {
   else if (payload.startsWith(Payload_Type.Select_Url_Action)) {
     const [_, value] = payload.split(Payload_Type.Splitter);
     await handleUrlPayload(context, value);
+  }
+  // Select a param option for chat system
+  else if (payload.startsWith(Payload_Type.Select_Chat_System)) {
+    const [_, value] = payload.split(Payload_Type.Splitter);
+    await handleChatSystemPayload(context, value);
   }
 }
 

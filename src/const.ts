@@ -7,6 +7,7 @@ export const Payload_Type = {
   Select_Service: 'Select_Service_',
   Select_Query_Option: 'Select_Query_Option_',
   Select_Url_Action: 'Select_Url_Action_',
+  Select_Chat_System: 'Select_Chat_System_',
   Splitter: '|',
 };
 
@@ -32,7 +33,6 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://images.unsplash.com/photo-1573164713988-8665fc963095?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MjN8fHRlY2hub2xvZ3l8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60',
     type: Service_Type.Chat,
-    getAnswer: createCompletionFromConversation,
     title: 'Chat completion from OpenAI',
     help: 'Type `/c` to create new conversation.',
   },
