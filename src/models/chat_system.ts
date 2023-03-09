@@ -3,15 +3,19 @@ import { Schema, model, Document } from 'mongoose';
 export interface IChatSystem extends Document {
   name: string;
   description: string;
-  content: string;
+  system: string;
+  user: string;
   active: boolean;
+  order: number;
 }
 
 const ChatSystemSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: false },
-  content: { type: String, required: true },
+  system: { type: String, required: true },
+  user: { type: String, required: false },
   active: { type: Boolean, default: true },
+  order: { type: Number, default: 0 },
 });
 
 export const ChatSystem = model<IChatSystem>('ChatSystem', ChatSystemSchema);

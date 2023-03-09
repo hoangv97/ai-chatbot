@@ -1,13 +1,13 @@
 import axios from "axios";
 import { MessengerContext } from "bottender";
+import { ChatCompletionRequestMessage } from "openai";
 import { Payload_Type, SERVICES, Service_Type } from "../const";
-import { getActiveService } from "../context";
 import { createCompletionFromConversation } from "./openai";
 
 export const getSystems = async () => {
   try {
     const response = await axios.get(`${process.env.PROD_API_URL}/api/chat-system`);
-    const systems = response.data.filter((s: any) => s.active);
+    const systems: any[] = response.data.filter((s: any) => s.active);
     // console.log(systems)
     return systems
   } catch (e) {
@@ -16,46 +16,66 @@ export const getSystems = async () => {
   }
 }
 
-export const selectChatSystems = async (context: MessengerContext) => {
+export const selectChatSystems = async (context: MessengerContext, name: string) => {
   const systems = await getSystems()
   if (systems.length) {
-    await context.sendGenericTemplate(systems.map((option: any, i: number) => ({
-      title: option.name,
-      subtitle: option.description,
-      buttons: [
-        {
-          type: 'postback',
-          title: 'Select',
-          payload: [Payload_Type.Select_Chat_System, i].join(
-            Payload_Type.Splitter
-          ),
-        },
-      ],
-    })), {})
+    systems.sort((a, b) => a.order === b.order ? 0 : a.order < b.order ? 1 : -1)
+
+    await context.sendGenericTemplate(
+      systems
+        .filter(s =>
+          s.name.toLowerCase().includes(name.toLowerCase())
+          || s.description.toLowerCase().includes(name.toLowerCase()))
+        .slice(0, 8)
+        .map((option: any, i: number) => ({
+          title: option.name,
+          subtitle: option.description,
+          buttons: [
+            {
+              type: 'postback',
+              title: 'Select',
+              payload: [Payload_Type.Select_Chat_System, option._id].join(
+                Payload_Type.Splitter
+              ),
+            },
+          ],
+        })), {})
   }
 }
 
 export const handleChatSystemPayload = async (context: MessengerContext, value: string) => {
   const systems = await getSystems()
   try {
-    const system = systems[parseInt(value)]
-    const response = await createCompletionFromConversation(context, [
-      { role: 'system', content: system.content },
-    ]);
-    if (!response) {
-      await context.sendText(
-        'Sorry! Please try again or select new assistant by `/m`'
-      );
-      return;
+    const system = systems.find(s => s._id === value)
+    if (!system) {
+      console.log('Can not found assistant')
+      return
     }
-    await context.sendText(response);
+
+    const messages: ChatCompletionRequestMessage[] = []
+    messages.push({ role: 'system', content: system.system })
+    await context.sendText(`System:\n${system.system}`)
+
+    if (system.user) {
+      messages.push({ role: 'user', content: system.user })
+      await context.sendText(`"${system.user}"`)
+
+      const response = await createCompletionFromConversation(context, messages);
+      if (!response) {
+        await context.sendText(
+          'Sorry! Please try again or select new assistant by `/m`'
+        );
+        return;
+      }
+      await context.sendText(response);
+
+      messages.push({ role: 'assistant', content: response })
+    }
+
     context.setState({
       ...context.state,
       service: SERVICES.findIndex(s => s.type === Service_Type.Chat),
-      context: [
-        { role: 'system', content: system.content },
-        { role: 'assistant', content: response },
-      ],
+      context: messages as any,
     });
   } catch (e) {
     console.error(e)

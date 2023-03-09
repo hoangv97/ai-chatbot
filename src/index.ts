@@ -23,7 +23,7 @@ async function Command(
     case 'h':
     case 'help':
       await context.sendText(
-        'Commands\n[s] Services & page\n[a] Active service\n[c] Clear context\n[d] Debug\n[m] My assistants\n\nAssistants settings: https://codepen.io/viethoang012/full/xxaXQbW'
+        `Commands\n[s] Services (page)\n[a] Active service\n[c] Clear context\n[d] Debug\n[m] My assistants (search by name)\n\nAssistants settings: https://codepen.io/viethoang012/full/xxaXQbW\n\nAssistants API: ${process.env.PROD_API_URL}/api/chat-system`
       );
       break;
     case 's':
@@ -53,7 +53,7 @@ async function Command(
       await context.sendText(objectToJsonWithTruncatedUrls(context.state));
       break;
     case 'm':
-      await selectChatSystems(context)
+      await selectChatSystems(context, content || '')
       break;
     default:
       await context.sendText('Sorry! Command not found.');
