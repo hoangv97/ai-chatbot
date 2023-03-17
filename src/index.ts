@@ -8,7 +8,7 @@ import {
 import { objectToJsonWithTruncatedUrls } from './helper';
 import { handleAudioForChat, handleTextToSpeech } from './models/audio';
 import { runPrediction } from './models/prediction';
-import { handleChat, handleChatSystemPayload, selectChatSystems } from './models/text';
+import { handleChat, handleChatSuggestionsPayload, handleChatSystemPayload, handleViewChatSuggestionsPayload, selectChatSystems } from './models/text';
 import { handleUrlPayload, handleUrlPrompt } from './models/url';
 
 async function Command(
@@ -135,6 +135,16 @@ async function Payload(context: MessengerContext) {
   else if (payload.startsWith(Payload_Type.Select_Chat_System)) {
     const [_, value] = payload.split(Payload_Type.Splitter);
     await handleChatSystemPayload(context, value);
+  }
+  // Select a param option for view chat suggestions
+  else if (payload.startsWith(Payload_Type.Select_View_Chat_Suggestions)) {
+    const [_, value] = payload.split(Payload_Type.Splitter);
+    await handleViewChatSuggestionsPayload(context, value);
+  }
+  // Select a param option for chat suggestions
+  else if (payload.startsWith(Payload_Type.Select_Chat_Suggestions)) {
+    const [_, value] = payload.split(Payload_Type.Splitter);
+    await handleChatSuggestionsPayload(context, value);
   }
 }
 

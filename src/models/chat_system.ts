@@ -5,6 +5,7 @@ export interface IChatSystem extends Document {
   description: string;
   system: string;
   user: string;
+  suggestions: string;
   active: boolean;
   order: number;
 }
@@ -14,6 +15,7 @@ const ChatSystemSchema = new Schema({
   description: { type: String, required: false },
   system: { type: String, required: true },
   user: { type: String, required: false },
+  suggestions: { type: String, required: false },
   active: { type: Boolean, default: true },
   order: { type: Number, default: 0 },
 });

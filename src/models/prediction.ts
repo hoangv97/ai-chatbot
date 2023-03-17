@@ -108,7 +108,10 @@ export async function runPrediction(context: MessengerContext) {
       await context.sendText(prediction.output.detected_language);
       await context.sendText(prediction.output.transcription);
       break;
+    case Output_Type.Audio:
+      await context.sendAudio(prediction.output)
     default:
+      // console.log(prediction.output)
       break;
   }
 }

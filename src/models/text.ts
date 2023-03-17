@@ -1,7 +1,7 @@
 import axios from "axios";
 import { MessengerContext } from "bottender";
 import { ChatCompletionRequestMessage } from "openai";
-import { Payload_Type, SERVICES, Service_Type } from "../const";
+import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, Payload_Type, SERVICES, Service_Type } from "../const";
 import { createCompletionFromConversation } from "./openai";
 
 export const getSystems = async () => {
@@ -43,6 +43,48 @@ export const selectChatSystems = async (context: MessengerContext, name: string)
   }
 }
 
+const handleChatResponse = async (context: MessengerContext, response: string | null | undefined) => {
+  if (!response) {
+    await context.sendText(
+      'Sorry! Please try again or select new assistant by `/m`'
+    );
+    return;
+  }
+
+  let [content, suggestions] = response.split(CHAT_RESPONSE_SUGGESTIONS_SPLITTER)
+
+  await context.sendText(content.trim());
+
+  if (suggestions) {
+    await context.sendGenericTemplate(
+      suggestions
+        .split('\n')
+        .map(s => s.replace(/^[0-9]+\.\s+/gm, "").trim())
+        .filter(s => !!s)
+        .map((option: string) => ({
+          title: option,
+          buttons: [
+            {
+              type: 'postback',
+              title: 'View Details',
+              payload: [Payload_Type.Select_View_Chat_Suggestions, option].join(
+                Payload_Type.Splitter
+              ),
+            },
+            {
+              type: 'postback',
+              title: 'Select',
+              payload: [Payload_Type.Select_Chat_Suggestions, option].join(
+                Payload_Type.Splitter
+              ),
+            },
+          ],
+        })), {}
+    )
+  }
+  return response;
+}
+
 export const handleChatSystemPayload = async (context: MessengerContext, value: string) => {
   const systems = await getSystems()
   try {
@@ -61,15 +103,25 @@ export const handleChatSystemPayload = async (context: MessengerContext, value: 
       await context.sendText(`"${system.user}"`)
 
       const response = await createCompletionFromConversation(context, messages);
-      if (!response) {
-        await context.sendText(
-          'Sorry! Please try again or select new assistant by `/m`'
-        );
-        return;
+      const content = await handleChatResponse(context, response)
+      if (content) {
+        messages.push({ role: 'assistant', content })
       }
-      await context.sendText(response);
+    }
 
-      messages.push({ role: 'assistant', content: response })
+    if (system.suggestions) {
+      await context.sendText(`Select`, {
+        quickReplies: system.suggestions
+          .split('\n')
+          .map((option: string) => option.trim())
+          .map((option: string) => ({
+            contentType: 'text',
+            title: option,
+            payload: [Payload_Type.Select_Chat_Suggestions, option].join(
+              Payload_Type.Splitter
+            ),
+          })),
+      })
     }
 
     context.setState({
@@ -87,19 +139,24 @@ export const handleChat = async (context: MessengerContext, text: string) => {
     ...context.state.context as any,
     { role: 'user', content: text },
   ]);
-  if (!response) {
-    await context.sendText(
-      'Sorry! Please try again or create new conversation by `/c`'
-    );
-    return;
+  const content = await handleChatResponse(context, response)
+  if (content) {
+    context.setState({
+      ...context.state,
+      context: [
+        ...context.state.context as any,
+        { role: 'user', content: text },
+        { role: 'assistant', content },
+      ],
+    });
   }
-  await context.sendText(response);
-  context.setState({
-    ...context.state,
-    context: [
-      ...context.state.context as any,
-      { role: 'user', content: text },
-      { role: 'assistant', content: response },
-    ],
-  });
+}
+
+export const handleViewChatSuggestionsPayload = async (context: MessengerContext, value: string) => {
+  await context.sendText(`"${value}"`)
+}
+
+export const handleChatSuggestionsPayload = async (context: MessengerContext, value: string) => {
+  await context.sendText(`"${value}"`)
+  await handleChat(context, value)
 }

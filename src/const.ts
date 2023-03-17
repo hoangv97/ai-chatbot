@@ -1,6 +1,5 @@
 import {
-  createCompletionFromConversation,
-  generateImage,
+  generateImage
 } from './models/openai';
 
 export const Payload_Type = {
@@ -8,6 +7,8 @@ export const Payload_Type = {
   Select_Query_Option: 'Select_Query_Option_',
   Select_Url_Action: 'Select_Url_Action_',
   Select_Chat_System: 'Select_Chat_System_',
+  Select_Chat_Suggestions: 'Select_Chat_Suggestions_',
+  Select_View_Chat_Suggestions: 'Select_View_Chat_Suggestions_',
   Splitter: '|',
 };
 
@@ -22,9 +23,12 @@ export const Output_Type = {
   SingleImage: 'single_image',
   Text: 'text',
   Transcription: 'transcription',
+  Audio: 'audio',
 };
 
 export const URL_SERVICE_ID = -2;
+
+export const CHAT_RESPONSE_SUGGESTIONS_SPLITTER = '-----suggestions-----'
 
 export const SERVICES: any[] = [
   {
@@ -218,6 +222,39 @@ export const SERVICES: any[] = [
     ],
     title: 'Convert speech in audio to text',
     help: 'Params: audio, model, transcription, language',
+  },
+  {
+    name: 'audio-ldm',
+    url: 'https://replicate.com/haoheliu/audio-ldm',
+    imageUrl:
+      'https://tjzk.replicate.delivery/models_models_cover_image/17f584de-98ae-489c-aea8-fdf366858ad6/640px-Spectrogram-19thC.png',
+    version: 'b61392adecdd660326fc9cfc5398182437dbe5e97b5decfb36e1a36de68b5b95',
+    type: Service_Type.Prediction,
+    output_type: Output_Type.Audio,
+    params: [
+      { name: 'text', type: 'text' },
+      {
+        name: 'duration',
+        type: 'text',
+      },
+      {
+        name: 'guidance_scale',
+        type: 'text',
+        alias: 'gs'
+      },
+      {
+        name: 'random_seed',
+        type: 'text',
+        alias: 'seed'
+      },
+      {
+        name: 'n_candidates',
+        type: 'text',
+        alias: 'nc'
+      },
+    ],
+    title: 'Text-to-audio generation with latent diffusion models',
+    help: 'Params: text, duration, guidance_scale (gs), random_seed (seed), n_candidates (nc)',
   },
   {
     name: 'AnimeGAN',
