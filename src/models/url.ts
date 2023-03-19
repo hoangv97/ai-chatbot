@@ -4,7 +4,7 @@ import { encode } from 'gpt-3-encoder';
 import { Payload_Type } from '../const';
 import { selectService } from '../context';
 import { truncate } from '../helper';
-import { createCompletion, GPT3_MAX_TOKENS } from './openai';
+import { GPT3_MAX_TOKENS } from './openai';
 
 export const URL_ACTIONS = [
   {

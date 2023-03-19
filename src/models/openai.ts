@@ -21,16 +21,19 @@ const handleError = async (context: MessengerContext, error: any) => {
     } else {
       message = error.message;
     }
+  } catch (e) {
+    console.log(e)
   } finally {
     await context.sendText(message || 'Error!');
   }
 };
 
-export const createCompletion = async (messages: any[], max_tokens?: number) => {
+export const createCompletion = async (messages: any[], max_tokens?: number, temperature?: number) => {
   const response = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages,
     max_tokens,
+    temperature,
   });
   return response.data.choices;
 };
@@ -41,11 +44,14 @@ const getTokens = (messages: ChatCompletionRequestMessage[]) => {
   return tokens;
 }
 
-export const createCompletionFromConversation = async (context: MessengerContext, messages: ChatCompletionRequestMessage[]) => {
+export const createCompletionFromConversation = async (
+  context: MessengerContext,
+  messages: ChatCompletionRequestMessage[],
+  temperature?: number) => {
   try {
     const response_max_tokens = 500
     const max_tokens = Math.min(getTokens(messages) + response_max_tokens, GPT3_MAX_TOKENS)
-    const response = await createCompletion(messages, max_tokens);
+    const response = await createCompletion(messages, max_tokens, temperature);
     return response[0].message?.content;
   } catch (e) {
     handleError(context, e);

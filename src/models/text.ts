@@ -2,12 +2,13 @@ import axios from "axios";
 import { MessengerContext } from "bottender";
 import { ChatCompletionRequestMessage } from "openai";
 import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, Payload_Type, SERVICES, Service_Type } from "../const";
+import { IChatSystem } from "./chat_system";
 import { createCompletionFromConversation } from "./openai";
 
 export const getSystems = async () => {
   try {
     const response = await axios.get(`${process.env.PROD_API_URL}/api/chat-system`);
-    const systems: any[] = response.data.filter((s: any) => s.active);
+    const systems: IChatSystem[] = response.data.filter((s: any) => s.active);
     // console.log(systems)
     return systems
   } catch (e) {
@@ -102,7 +103,7 @@ export const handleChatSystemPayload = async (context: MessengerContext, value: 
       messages.push({ role: 'user', content: system.user })
       await context.sendText(`"${system.user}"`)
 
-      const response = await createCompletionFromConversation(context, messages);
+      const response = await createCompletionFromConversation(context, messages, system.temperature);
       const content = await handleChatResponse(context, response)
       if (content) {
         messages.push({ role: 'assistant', content })
