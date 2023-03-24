@@ -1,4 +1,4 @@
-import { MessengerContext } from 'bottender';
+import { MessengerContext, TelegramContext } from 'bottender';
 import fs from 'fs';
 import { encode } from 'gpt-3-encoder';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
@@ -13,7 +13,7 @@ export const GPT3_MAX_TOKENS = 4096;
 
 const downloadsPath = './downloads';
 
-const handleError = async (context: MessengerContext, error: any) => {
+const handleError = async (context: MessengerContext | TelegramContext, error: any) => {
   let message;
   try {
     if (error.response) {
@@ -45,7 +45,7 @@ const getTokens = (messages: ChatCompletionRequestMessage[]) => {
 }
 
 export const createCompletionFromConversation = async (
-  context: MessengerContext,
+  context: MessengerContext | TelegramContext,
   messages: ChatCompletionRequestMessage[],
   temperature?: number) => {
   try {

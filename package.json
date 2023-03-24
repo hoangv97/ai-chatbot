@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "nodemon dist/server.js",
     "lint": "eslint . --ext=js,ts",
     "start": "tsc && node dist/server.js",
     "test": "jest"

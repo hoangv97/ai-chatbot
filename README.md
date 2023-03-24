@@ -1,4 +1,4 @@
-# Messenger bot with AI
+# Messenger + Telegram bot with AI
 
 ## Installation
 
@@ -12,6 +12,19 @@ yarn
 
 yarn run start
 ```
+
+### Telegram commands
+
+```text
+clear - Clear conversation
+debug - Debug
+```
+
+## Changelog
+
+24/3
+
+- Add Telegram bot with ChatGPT
 
 ## Configuration
 

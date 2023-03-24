@@ -1,6 +1,10 @@
-import { MessengerContext } from 'bottender';
+import { MessengerContext, TelegramContext } from 'bottender';
 import { Payload_Type, SERVICES, Service_Type } from './const';
-import { getFieldNameByType, splitByFirstSpace } from './helper';
+import { getFieldNameByType, objectToJsonWithTruncatedUrls, splitByFirstSpace } from './helper';
+
+export const showDebug = async (context: MessengerContext | TelegramContext) => {
+  await context.sendText(objectToJsonWithTruncatedUrls(context.state));
+}
 
 export const selectService = async (context: MessengerContext, page = 0) => {
   const NUM_PER_PAGE = 6;
@@ -55,18 +59,22 @@ export const checkActiveService = async (context: MessengerContext) => {
   return true;
 };
 
-export const clearServiceData = async (context: MessengerContext) => {
+export const clearServiceData = async (context: MessengerContext | TelegramContext) => {
   context.setState({
     ...context.state,
     query: {},
     context: [],
     data: {},
   });
-  const activeService = getActiveService(context);
-  if (activeService && activeService.type === Service_Type.Chat) {
+  if (context.platform === 'messenger') {
+    const activeService = getActiveService(context);
+    if (activeService && activeService.type === Service_Type.Chat) {
+      await context.sendText('New conversation.');
+    } else {
+      await context.sendText('Clearing data.');
+    }
+  } else if (context.platform === 'telegram') {
     await context.sendText('New conversation.');
-  } else {
-    await context.sendText('Clearing data.');
   }
 };
 

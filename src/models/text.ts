@@ -1,5 +1,5 @@
 import axios from "axios";
-import { MessengerContext } from "bottender";
+import { MessengerContext, TelegramContext } from "bottender";
 import { ChatCompletionRequestMessage } from "openai";
 import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, Payload_Type, SERVICES, Service_Type } from "../const";
 import { IChatSystem } from "./chat_system";
@@ -44,7 +44,7 @@ export const selectChatSystems = async (context: MessengerContext, name: string)
   }
 }
 
-const handleChatResponse = async (context: MessengerContext, response: string | null | undefined) => {
+const handleChatResponse = async (context: MessengerContext | TelegramContext, response: string | null | undefined) => {
   if (!response) {
     await context.sendText(
       'Sorry! Please try again or select new assistant by `/m`'
@@ -57,6 +57,7 @@ const handleChatResponse = async (context: MessengerContext, response: string | 
   await context.sendText(content.trim());
 
   if (suggestions) {
+    if (context.platform !== 'messenger') return;
     await context.sendGenericTemplate(
       suggestions
         .split('\n')
@@ -135,7 +136,7 @@ export const handleChatSystemPayload = async (context: MessengerContext, value: 
   }
 }
 
-export const handleChat = async (context: MessengerContext, text: string) => {
+export const handleChat = async (context: MessengerContext | TelegramContext, text: string) => {
   const response = await createCompletionFromConversation(context, [
     ...context.state.context as any,
     { role: 'user', content: text },

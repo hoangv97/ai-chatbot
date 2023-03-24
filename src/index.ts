@@ -1,15 +1,15 @@
-import { Action, MessengerContext } from 'bottender';
-import { payload, router, text, messenger } from 'bottender/router';
+import { Action, MessengerContext, TelegramContext } from 'bottender';
+import { messenger, payload, router, text } from 'bottender/router';
 import { getMessage } from './api/messenger';
 import { Payload_Type, Service_Type, URL_SERVICE_ID } from './const';
 import {
-  checkActiveService, clearServiceData, getActiveService, selectService, setQueryForService, setValueForQuery, showActiveService
+  checkActiveService, clearServiceData, getActiveService, selectService, setQueryForService, setValueForQuery, showActiveService, showDebug
 } from './context';
-import { objectToJsonWithTruncatedUrls } from './helper';
 import { handleAudioForChat, handleTextToSpeech } from './models/audio';
 import { runPrediction } from './models/prediction';
 import { handleChat, handleChatSuggestionsPayload, handleChatSystemPayload, handleViewChatSuggestionsPayload, selectChatSystems } from './models/text';
 import { handleUrlPayload, handleUrlPrompt } from './models/url';
+import handleTelegram from './telegram';
 
 async function Command(
   context: MessengerContext,
@@ -50,7 +50,7 @@ async function Command(
       break;
     case 'd':
     case 'debug':
-      await context.sendText(objectToJsonWithTruncatedUrls(context.state));
+      await showDebug(context)
       break;
     case 'm':
       await selectChatSystems(context, content || '')
@@ -210,8 +210,12 @@ async function Submit(context: MessengerContext) {
 }
 
 export default async function App(
-  context: MessengerContext
-): Promise<Action<MessengerContext> | void> {
+  context: MessengerContext | TelegramContext
+): Promise<Action<any> | void> {
+  if (context.platform === 'telegram') {
+    return handleTelegram(context)
+  }
+
   if (context.event.isImage) {
     return HandleImage;
   }
