@@ -1,4 +1,5 @@
 import { TelegramContext } from "bottender";
+import { ChatAction } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
 import { clearServiceData, showDebug } from "./context";
 import { handleAudioForChat } from "./models/audio";
@@ -30,6 +31,7 @@ async function HandleAudio(context: TelegramContext) {
 }
 
 async function Others(context: TelegramContext) {
+  await context.sendChatAction(ChatAction.Typing);
   await handleChat(context, context.event.text)
 }
 

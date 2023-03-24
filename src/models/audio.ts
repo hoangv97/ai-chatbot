@@ -9,6 +9,7 @@ import { handleUrlPrompt } from "./url";
 import { MongoClient } from 'mongodb'
 import { getTranscription } from "./openai";
 import { getFileUrl } from "../api/telegram";
+import { ChatAction } from "bottender/dist/telegram/TelegramTypes";
 
 export const handleAudioForChat = async (context: MessengerContext | TelegramContext) => {
   let transcription
@@ -37,6 +38,7 @@ export const handleAudioForChat = async (context: MessengerContext | TelegramCon
       await handleChat(context, transcription)
     }
   } else if (context.platform === 'telegram') {
+    await context.sendChatAction(ChatAction.Typing);
     await handleChat(context, transcription)
   }
 }
