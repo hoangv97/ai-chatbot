@@ -1,9 +1,11 @@
 import { Readability } from '@mozilla/readability';
 import axios from 'axios';
+import { exec } from 'child_process';
 import fs from 'fs';
 import https from 'https';
 import { JSDOM } from 'jsdom';
 import path from 'path';
+import { promisify } from 'util';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -90,3 +92,19 @@ export async function getReadableContentFromUrl(url: string) {
     return null;
   }
 }
+
+const asyncExec = promisify(exec);
+
+export const convertOggToMp3 = async (inputFile: string, outputFile: string) => {
+  try {
+    const { stdout, stderr } = await asyncExec(`ffmpeg -loglevel error -i ${inputFile} -c:a libmp3lame -q:a 2 ${outputFile}`);
+    // console.log(stdout);
+
+    if (stderr) {
+      console.error(stderr);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+

@@ -1,11 +1,9 @@
 import { TelegramContext } from "bottender";
 import { router, text } from "bottender/router";
 import { clearServiceData, showDebug } from "./context";
+import { handleAudioForChat } from "./models/audio";
 import { handleChat } from "./models/text";
 
-/*
-
-*/
 async function Command(
   context: TelegramContext,
   {
@@ -27,11 +25,18 @@ async function Command(
   }
 }
 
+async function HandleAudio(context: TelegramContext) {
+  await handleAudioForChat(context)
+}
+
 async function Others(context: TelegramContext) {
   await handleChat(context, context.event.text)
 }
 
 const handleTelegram = (context: TelegramContext) => {
+  if (context.event.voice) {
+    return HandleAudio;
+  }
   return router([
     text(/^[/.](?<command>\w+)(?:\s(?<content>.+))?/i, Command),
     text('*', Others),

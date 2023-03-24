@@ -5,6 +5,12 @@
 ```sh
 mkdir downloads
 
+# Install ffmpeg package
+# Windows
+choco install ffmpeg
+# Ubuntu
+sudo apt install ffmpeg
+
 cp .env.example .env
 # Edit .env
 

@@ -1,9 +1,15 @@
 import { MessengerContext, TelegramContext } from 'bottender';
+import { ParseMode } from 'bottender/dist/telegram/TelegramTypes';
 import { Payload_Type, SERVICES, Service_Type } from './const';
 import { getFieldNameByType, objectToJsonWithTruncatedUrls, splitByFirstSpace } from './helper';
 
 export const showDebug = async (context: MessengerContext | TelegramContext) => {
-  await context.sendText(objectToJsonWithTruncatedUrls(context.state));
+  const content = objectToJsonWithTruncatedUrls(context.state)
+  if (context.platform === 'messenger') {
+    await context.sendText(content);
+  } else if (context.platform === 'telegram') {
+    await context.sendMessage(`\`\`\`\n${content}\`\`\``, { parseMode: ParseMode.Markdown });
+  }
 }
 
 export const selectService = async (context: MessengerContext, page = 0) => {

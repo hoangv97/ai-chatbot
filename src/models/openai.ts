@@ -2,7 +2,7 @@ import { MessengerContext, TelegramContext } from 'bottender';
 import fs from 'fs';
 import { encode } from 'gpt-3-encoder';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
-import { downloadFile } from '../helper';
+import { convertOggToMp3, downloadFile } from '../helper';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -68,11 +68,22 @@ const deleteDownloadFile = (filePath: string) => {
   })
 }
 
-export const getTranscription = async (url: string) => {
-  const filePath = await downloadFile(url, downloadsPath);
-  const response = await openai.createTranscription(fs.createReadStream(filePath) as any, 'whisper-1');
-  deleteDownloadFile(filePath)
-  return response.data.text
+export const getTranscription = async (context: MessengerContext | TelegramContext, url: string) => {
+  try {
+    let filePath = await downloadFile(url, downloadsPath);
+    if (filePath.endsWith('.oga')) {
+      const newFilePath = filePath.replace('.oga', '.mp3')
+      await convertOggToMp3(filePath, newFilePath)
+      deleteDownloadFile(filePath)
+      filePath = newFilePath
+    }
+    const response = await openai.createTranscription(fs.createReadStream(filePath) as any, 'whisper-1');
+    deleteDownloadFile(filePath)
+    return response.data.text
+  } catch (e) {
+    handleError(context, e);
+    return null;
+  }
 }
 
 const createImage = async ({ prompt, n }: any) => {

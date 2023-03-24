@@ -1,5 +1,5 @@
 import { Resemble } from "@resemble/node";
-import { MessengerContext } from "bottender";
+import { MessengerContext, TelegramContext } from "bottender";
 import { Output_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../const";
 import { getActiveService } from "../context";
 import { sleep } from "../helper";
@@ -8,22 +8,35 @@ import { handleChat } from "./text";
 import { handleUrlPrompt } from "./url";
 import { MongoClient } from 'mongodb'
 import { getTranscription } from "./openai";
+import { getFileUrl } from "../api/telegram";
 
-export const handleAudioForChat = async (context: MessengerContext) => {
-  const transcription = await getTranscription(context.event.audio.url)
+export const handleAudioForChat = async (context: MessengerContext | TelegramContext) => {
+  let transcription
+  if (context.platform === 'messenger') {
+    transcription = await getTranscription(context, context.event.audio.url)
+  } else if (context.platform === 'telegram') {
+    const fileUrl = await getFileUrl(context.event.voice.fileId)
+    if (fileUrl) {
+      transcription = await getTranscription(context, fileUrl)
+    }
+  }
   if (!transcription) {
     await context.sendText(`Error getting transcription!`);
     return
   }
   await context.sendText(`"${transcription}"`);
 
-  if (context.state.service === URL_SERVICE_ID) {
-    await handleUrlPrompt(context, transcription);
-    return
-  }
+  if (context.platform === 'messenger') {
+    if (context.state.service === URL_SERVICE_ID) {
+      await handleUrlPrompt(context, transcription);
+      return
+    }
 
-  const activeService = getActiveService(context);
-  if (activeService.type === Service_Type.Chat) {
+    const activeService = getActiveService(context);
+    if (activeService.type === Service_Type.Chat) {
+      await handleChat(context, transcription)
+    }
+  } else if (context.platform === 'telegram') {
     await handleChat(context, transcription)
   }
 }
