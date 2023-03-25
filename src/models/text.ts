@@ -39,8 +39,13 @@ const handleChatResponse = async (context: MessengerContext | TelegramContext, r
   }
 
   let [content, suggestions] = response.split(CHAT_RESPONSE_SUGGESTIONS_SPLITTER)
+  content = content.trim()
 
-  await context.sendText(content.trim());
+  if (context.platform === 'messenger') {
+    await context.sendText(content);
+  } else if (context.platform === 'telegram') {
+    await context.sendMessage(content, { parseMode: ParseMode.Markdown });
+  }
 
   if (suggestions) {
     if (context.platform === 'messenger') {
