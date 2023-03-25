@@ -3,7 +3,39 @@ import { ChatAction } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
 import { clearServiceData, showDebug } from "./context";
 import { handleAudioForChat } from "./models/audio";
-import { handleChat } from "./models/text";
+import { handleChat, handleTelegramCharacter } from "./models/text";
+
+async function HandleApps(context: TelegramContext) {
+  await context.sendText('Apps:', {
+    replyMarkup: {
+      keyboard: [
+        [
+          {
+            text: 'Characters',
+            web_app: {
+              url: `${process.env.PROD_API_URL}/static/telegram/characters.html`,
+            }
+          } as any,
+        ]
+      ],
+      resizeKeyboard: true,
+      oneTimeKeyboard: true,
+    }
+  });
+}
+
+async function HandleWebApp(context: TelegramContext) {
+  try {
+    const { _type, ...others } = JSON.parse(context.event.message.webAppData.data)
+    if (_type === 'character') {
+      await handleTelegramCharacter(context, others)
+    }
+  } catch (e) {
+    console.error(e)
+    await context.sendText('Error getting web app data.')
+  }
+}
+
 
 async function Command(
   context: TelegramContext,
@@ -14,6 +46,9 @@ async function Command(
   }: any
 ) {
   switch (command.toLowerCase()) {
+    case 'apps':
+      await HandleApps(context)
+      break;
     case 'clear':
       await clearServiceData(context);
       break;
@@ -36,6 +71,10 @@ async function Others(context: TelegramContext) {
 }
 
 const handleTelegram = (context: TelegramContext) => {
+  // console.log(context.event)
+  if (context.event.message.webAppData) {
+    return HandleWebApp;
+  }
   if (context.event.voice) {
     return HandleAudio;
   }

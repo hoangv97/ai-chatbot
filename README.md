@@ -22,6 +22,7 @@ yarn run start
 ### Telegram commands
 
 ```text
+apps - Show all apps
 clear - Clear conversation
 debug - Debug
 ```

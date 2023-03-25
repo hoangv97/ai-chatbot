@@ -1,27 +1,13 @@
-import axios from "axios";
 import { MessengerContext, TelegramContext } from "bottender";
+import { ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { ChatCompletionRequestMessage } from "openai";
 import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, Payload_Type, SERVICES, Service_Type } from "../const";
-import { IChatSystem } from "./chat_system";
+import { getSystems, IChatSystem } from "./chat_system";
 import { createCompletionFromConversation } from "./openai";
-
-export const getSystems = async () => {
-  try {
-    const response = await axios.get(`${process.env.PROD_API_URL}/api/chat-system`);
-    const systems: IChatSystem[] = response.data.filter((s: any) => s.active);
-    // console.log(systems)
-    return systems
-  } catch (e) {
-    console.error(e)
-    return []
-  }
-}
 
 export const selectChatSystems = async (context: MessengerContext, name: string) => {
   const systems = await getSystems()
   if (systems.length) {
-    systems.sort((a, b) => a.order === b.order ? 0 : a.order < b.order ? 1 : -1)
-
     await context.sendGenericTemplate(
       systems
         .filter(s =>
@@ -57,32 +43,49 @@ const handleChatResponse = async (context: MessengerContext | TelegramContext, r
   await context.sendText(content.trim());
 
   if (suggestions) {
-    if (context.platform !== 'messenger') return;
-    await context.sendGenericTemplate(
-      suggestions
-        .split('\n')
-        .map(s => s.replace(/^[0-9]+\.\s+/gm, "").trim())
-        .filter(s => !!s)
-        .map((option: string) => ({
-          title: option,
-          buttons: [
-            {
-              type: 'postback',
-              title: 'View Details',
-              payload: [Payload_Type.Select_View_Chat_Suggestions, option].join(
-                Payload_Type.Splitter
-              ),
-            },
-            {
-              type: 'postback',
-              title: 'Select',
-              payload: [Payload_Type.Select_Chat_Suggestions, option].join(
-                Payload_Type.Splitter
-              ),
-            },
+    if (context.platform === 'messenger') {
+      await context.sendGenericTemplate(
+        suggestions
+          .split('\n')
+          .map(s => s.replace(/^[0-9]+\.\s+/gm, "").trim())
+          .filter(s => !!s)
+          .map((option: string) => ({
+            title: option,
+            buttons: [
+              {
+                type: 'postback',
+                title: 'View Details',
+                payload: [Payload_Type.Select_View_Chat_Suggestions, option].join(
+                  Payload_Type.Splitter
+                ),
+              },
+              {
+                type: 'postback',
+                title: 'Select',
+                payload: [Payload_Type.Select_Chat_Suggestions, option].join(
+                  Payload_Type.Splitter
+                ),
+              },
+            ],
+          })), {}
+      )
+    } else if (context.platform === 'telegram') {
+      await context.sendText(`Select`, {
+        replyMarkup: {
+          keyboard: [
+            suggestions
+              .split('\n')
+              .map(s => s.replace(/^[0-9]+\.\s+/gm, "").trim())
+              .filter(s => !!s)
+              .map(option => ({
+                text: option
+              }))
           ],
-        })), {}
-    )
+          resizeKeyboard: true,
+          oneTimeKeyboard: true,
+        },
+      })
+    }
   }
   return response;
 }
@@ -161,4 +164,48 @@ export const handleViewChatSuggestionsPayload = async (context: MessengerContext
 export const handleChatSuggestionsPayload = async (context: MessengerContext, value: string) => {
   await context.sendText(`"${value}"`)
   await handleChat(context, value)
+}
+
+export const handleTelegramCharacter = async (context: TelegramContext, character: IChatSystem) => {
+  try {
+    const messages: ChatCompletionRequestMessage[] = []
+    messages.push({ role: 'system', content: character.system })
+    await context.sendMessage(`*System:*\n${character.system}`, { parseMode: ParseMode.Markdown });
+
+    if (character.user) {
+      messages.push({ role: 'user', content: character.user })
+      await context.sendMessage(`_${character.user}_`, { parseMode: ParseMode.Markdown });
+
+      const response = await createCompletionFromConversation(context, messages, character.temperature);
+      const content = await handleChatResponse(context, response)
+      if (content) {
+        messages.push({ role: 'assistant', content })
+      }
+    }
+
+    if (character.suggestions) {
+      await context.sendText(`Select`, {
+        replyMarkup: {
+          keyboard: [
+            character.suggestions
+              .split('\n')
+              .map((option: string) => option.trim())
+              .map(option => ({
+                text: option
+              }))
+          ],
+          resizeKeyboard: true,
+          oneTimeKeyboard: true,
+        },
+      })
+    }
+
+    context.setState({
+      ...context.state,
+      service: SERVICES.findIndex(s => s.type === Service_Type.Chat),
+      context: messages as any,
+    });
+  } catch (e) {
+    console.error(e)
+  }
 }

@@ -9,7 +9,7 @@ import { handleUrlPrompt } from "./url";
 import { MongoClient } from 'mongodb'
 import { getTranscription } from "./openai";
 import { getFileUrl } from "../api/telegram";
-import { ChatAction } from "bottender/dist/telegram/TelegramTypes";
+import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 
 export const handleAudioForChat = async (context: MessengerContext | TelegramContext) => {
   let transcription
@@ -25,7 +25,13 @@ export const handleAudioForChat = async (context: MessengerContext | TelegramCon
     await context.sendText(`Error getting transcription!`);
     return
   }
-  await context.sendText(`"${transcription}"`);
+
+  if (context.platform === 'messenger') {
+    await context.sendText(`"${transcription}"`);
+  } else if (context.platform === 'telegram') {
+    await context.sendMessage(`_${transcription}_`, { parseMode: ParseMode.Markdown });
+  }
+
 
   if (context.platform === 'messenger') {
     if (context.state.service === URL_SERVICE_ID) {

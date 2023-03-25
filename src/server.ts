@@ -5,6 +5,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import ChatSystemController from './api/chat_system';
 import { handleWebhooks } from './models/resemble';
+import path from 'path'
 
 const app = bottender({
   dev: process.env.NODE_ENV !== 'production',
@@ -31,6 +32,8 @@ app.prepare().then(() => {
   server.use(cors())
 
   // your custom route
+  server.use('/static', express.static('static'));
+
   server.get('/api/chat-system', ChatSystemController.getAll);
   server.get('/api/chat-system/:id', ChatSystemController.getById);
   server.post('/api/chat-system', ChatSystemController.create);
