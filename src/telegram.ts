@@ -49,7 +49,7 @@ async function Command(
     case 'apps':
       await HandleApps(context)
       break;
-    case 'clear':
+    case 'new':
       await clearServiceData(context);
       break;
     case 'debug':

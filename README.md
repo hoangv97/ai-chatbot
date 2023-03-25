@@ -23,7 +23,7 @@ yarn run start
 
 ```text
 apps - Show all apps
-clear - Clear conversation
+new - New conversation
 debug - Debug
 ```
 
