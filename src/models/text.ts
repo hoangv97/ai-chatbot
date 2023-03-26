@@ -41,10 +41,17 @@ const handleChatResponse = async (context: MessengerContext | TelegramContext, r
 
   let [content, suggestions] = response.split(CHAT_RESPONSE_SUGGESTIONS_SPLITTER)
   content = content.trim()
+  // console.log(content)
 
   if (context.platform === 'messenger') {
     await context.sendText(content);
   } else if (context.platform === 'telegram') {
+    // escape 2 or more underscores in string
+    content = content.replace(/(_{2,})/g, (match) => {
+      const numUnderscores = match.length;
+      const escapedUnderscores = "_".repeat(numUnderscores).split("").map(u => `\\${u}`).join("");
+      return escapedUnderscores;
+    })
     await context.sendMessage(content, { parseMode: ParseMode.Markdown });
   }
 

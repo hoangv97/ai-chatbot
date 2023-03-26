@@ -3,7 +3,9 @@ const API_PREFIX = 'https://chat.hoangv.me/api/chat-system';
 const App = () => {
   const [characters, setCharacters] = React.useState([]);
   const [filteredCharacters, setFilteredCharacters] = React.useState([]);
-  const [search, setSearch] = React.useState('');
+  const [search, setSearch] = React.useState(
+    new URLSearchParams(document.location.search).get('s') || ''
+  );
 
   React.useEffect(() => {
     fetchCharacters();

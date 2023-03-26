@@ -8,6 +8,7 @@ import { handleChat, handleTelegramCharacter, saveConversation } from "./models/
 import { handleUrlPrompt } from "./models/url";
 
 async function HandleApps(context: TelegramContext) {
+  const charactersUrl = `${process.env.PROD_API_URL}/static/telegram/characters.html`
   await context.sendText('Apps:', {
     replyMarkup: {
       keyboard: [
@@ -15,10 +16,16 @@ async function HandleApps(context: TelegramContext) {
           {
             text: 'Characters',
             web_app: {
-              url: `${process.env.PROD_API_URL}/static/telegram/characters.html`,
+              url: charactersUrl,
             }
-          } as any,
-        ]
+          },
+          {
+            text: 'English tutors',
+            web_app: {
+              url: `${charactersUrl}?s=english`,
+            }
+          },
+        ] as any,
       ],
       resizeKeyboard: true,
       oneTimeKeyboard: true,
