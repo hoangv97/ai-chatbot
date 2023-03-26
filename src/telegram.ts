@@ -1,9 +1,11 @@
 import { TelegramContext } from "bottender";
-import { ChatAction } from "bottender/dist/telegram/TelegramTypes";
+import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
+import { COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "./const";
 import { clearServiceData, showDebug } from "./context";
 import { handleAudioForChat } from "./models/audio";
 import { handleChat, handleTelegramCharacter } from "./models/text";
+import { handleUrlPrompt } from "./models/url";
 
 async function HandleApps(context: TelegramContext) {
   await context.sendText('Apps:', {
@@ -55,6 +57,10 @@ async function Command(
     case 'debug':
       await showDebug(context)
       break;
+    case 'help':
+      const helpContent = `*Help*\n\nStart a conversation with \`/new\`.\n\nOr paste any URL to start a Q&A.`
+      await context.sendMessage(helpContent, { parseMode: ParseMode.Markdown });
+      break;
     default:
       await context.sendText('Sorry! Command not found.');
       break;
@@ -65,9 +71,39 @@ async function HandleAudio(context: TelegramContext) {
   await handleAudioForChat(context)
 }
 
+async function HandleUrl(context: TelegramContext) {
+  const url = context.event.text
+
+  context.setState({
+    ...context.state,
+    service: URL_SERVICE_ID,
+    data: {
+      ...context.state.data as any,
+      url,
+    },
+  });
+  const suggestions = ['Summarize this', 'Some key takeaways', 'Tóm tắt']
+  await context.sendText(`Ask me anything or select option below.`, {
+    replyMarkup: {
+      keyboard: [
+        suggestions
+          .map(option => ({
+            text: option
+          }))
+      ],
+      resizeKeyboard: true,
+      oneTimeKeyboard: true,
+    },
+  })
+}
+
 async function Others(context: TelegramContext) {
   await context.sendChatAction(ChatAction.Typing);
-  await handleChat(context, context.event.text)
+  if (context.state.service === URL_SERVICE_ID) {
+    await handleUrlPrompt(context, context.event.text);
+  } else {
+    await handleChat(context, context.event.text)
+  }
 }
 
 const handleTelegram = (context: TelegramContext) => {
@@ -79,7 +115,8 @@ const handleTelegram = (context: TelegramContext) => {
     return HandleAudio;
   }
   return router([
-    text(/^[/.](?<command>\w+)(?:\s(?<content>.+))?/i, Command),
+    text(URL_REGEX, HandleUrl),
+    text(COMMAND_REGEX, Command),
     text('*', Others),
   ])
 }

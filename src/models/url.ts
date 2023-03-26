@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { MessengerContext } from 'bottender';
+import { MessengerContext, TelegramContext } from 'bottender';
+import { ParseMode } from 'bottender/dist/telegram/TelegramTypes';
 import { encode } from 'gpt-3-encoder';
 import { Payload_Type } from '../const';
 import { selectService } from '../context';
@@ -94,12 +95,14 @@ export const handleUrlPayload = async (context: MessengerContext, actionIndex: s
   }
 };
 
-export const handleUrlPrompt = async (context: MessengerContext, prompt: string) => {
+export const handleUrlPrompt = async (context: MessengerContext | TelegramContext, prompt: string) => {
   try {
     let { url } = context.state.data as any;
     if (!url) {
       await context.sendText(`Sorry! URL not found.`);
-      await selectService(context)
+      if (context.platform === 'messenger') {
+        await selectService(context)
+      }
       return
     }
 
@@ -127,7 +130,12 @@ export const handleUrlPrompt = async (context: MessengerContext, prompt: string)
     }
     const { result } = response.data;
     if (result) {
-      await context.sendText(response.data.result);
+      const content = response.data.result;
+      if (context.platform === 'messenger') {
+        await context.sendText(content);
+      } else if (context.platform === 'telegram') {
+        await context.sendMessage(content, { parseMode: ParseMode.Markdown });
+      }
     } else {
       await context.sendText('Error! Please try again.');
     }

@@ -1,7 +1,7 @@
 import { Action, MessengerContext, TelegramContext } from 'bottender';
 import { messenger, payload, router, text } from 'bottender/router';
 import { getMessage } from './api/messenger';
-import { Payload_Type, Service_Type, URL_SERVICE_ID } from './const';
+import { COMMAND_REGEX, Payload_Type, Service_Type, URL_REGEX, URL_SERVICE_ID } from './const';
 import {
   checkActiveService, clearServiceData, getActiveService, selectService, setQueryForService, setValueForQuery, showActiveService, showDebug
 } from './context';
@@ -234,11 +234,8 @@ export default async function App(
   return router([
     messenger.reaction.react(HandleReactionReact),
     payload('*', Payload),
-    text(
-      /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i,
-      HandleUrl
-    ),
-    text(/^[/.](?<command>\w+)(?:\s(?<content>.+))?/i, Command),
+    text(URL_REGEX, HandleUrl),
+    text(COMMAND_REGEX, Command),
     text(/^ok$/i, Submit),
     text('*', Others),
   ]);

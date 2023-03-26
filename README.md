@@ -25,6 +25,7 @@ yarn run start
 apps - Show all apps
 new - New conversation
 debug - Debug
+help - How to use this bot?
 ```
 
 ## Changelog

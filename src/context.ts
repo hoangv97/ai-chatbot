@@ -66,13 +66,13 @@ export const checkActiveService = async (context: MessengerContext) => {
 };
 
 export const clearServiceData = async (context: MessengerContext | TelegramContext) => {
-  context.setState({
-    ...context.state,
-    query: {},
-    context: [],
-    data: {},
-  });
   if (context.platform === 'messenger') {
+    context.setState({
+      ...context.state,
+      query: {},
+      context: [],
+      data: {},
+    });
     const activeService = getActiveService(context);
     if (activeService && activeService.type === Service_Type.Chat) {
       await context.sendText('New conversation.');
@@ -80,6 +80,13 @@ export const clearServiceData = async (context: MessengerContext | TelegramConte
       await context.sendText('Clearing data.');
     }
   } else if (context.platform === 'telegram') {
+    context.setState({
+      ...context.state,
+      service: -1,
+      query: {},
+      context: [],
+      data: {},
+    });
     await context.sendText('New conversation.');
   }
 };
