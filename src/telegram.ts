@@ -58,7 +58,7 @@ async function Command(
       await showDebug(context)
       break;
     case 'help':
-      const helpContent = `*Help*\n\nStart a conversation with \`/new\`.\n\nOr paste any URL to start a Q&A.`
+      const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
       await context.sendMessage(helpContent, { parseMode: ParseMode.Markdown });
       break;
     default:
