@@ -1,9 +1,10 @@
+import { Client } from "@notionhq/client";
 import { MessengerContext, TelegramContext } from "bottender";
-import { ParseMode } from "bottender/dist/telegram/TelegramTypes";
+import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { ChatCompletionRequestMessage } from "openai";
-import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, Payload_Type, SERVICES, Service_Type } from "../const";
+import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, DEFAULT_CHAT_SERVICE_ID, Payload_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../const";
 import { getSystems, IChatSystem } from "./chat_system";
-import { createCompletionFromConversation } from "./openai";
+import { createCompletionFromConversation, createTitleFromConversation } from "./openai";
 
 export const selectChatSystems = async (context: MessengerContext, name: string) => {
   const systems = await getSystems()
@@ -207,10 +208,76 @@ export const handleTelegramCharacter = async (context: TelegramContext, characte
 
     context.setState({
       ...context.state,
-      service: SERVICES.findIndex(s => s.type === Service_Type.Chat),
       context: messages as any,
     });
   } catch (e) {
     console.error(e)
+  }
+}
+
+const ROLES_TO_COLORS: any = {
+  system: 'blue',
+  user: 'green',
+  assistant: 'red',
+}
+
+export const saveConversation = async (context: TelegramContext) => {
+  await context.sendChatAction(ChatAction.Typing);
+
+  const messages = context.state.context as any;
+  if (context.state.service !== DEFAULT_CHAT_SERVICE_ID || !messages || !messages.length) {
+    await context.sendText('There is no conversation.')
+    return;
+  }
+  let title = await createTitleFromConversation(messages)
+  if (!title) {
+    title = 'New Chat'
+  }
+
+  const notion = new Client({ auth: process.env.NOTION_API_KEY });
+  const response = await notion.pages.create({
+    parent: {
+      database_id: process.env.CHAT_HISTORY_NOTION_DATABASE_ID || '',
+    },
+    properties: {
+      Title: { title: [{ text: { content: title } }] },
+    },
+    children: messages.map((message: any) => [
+      {
+        object: "block",
+        type: "paragraph",
+        paragraph: {
+          rich_text: [
+            {
+              type: "text",
+              text: {
+                "content": message.role,
+              },
+              annotations: {
+                bold: true,
+                color: ROLES_TO_COLORS[message.role],
+              }
+            }
+          ]
+        },
+      },
+      {
+        object: "block",
+        type: "paragraph",
+        paragraph: {
+          rich_text: [
+            {
+              type: "text",
+              text: {
+                "content": message.content,
+              },
+            }
+          ]
+        },
+      },
+    ]).flat()
+  })
+  if (response) {
+    await context.sendText('Saved conversation.')
   }
 }

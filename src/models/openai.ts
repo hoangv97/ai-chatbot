@@ -28,7 +28,7 @@ const handleError = async (context: MessengerContext | TelegramContext, error: a
   }
 };
 
-export const createCompletion = async (messages: any[], max_tokens?: number, temperature?: number) => {
+export const createCompletion = async (messages: ChatCompletionRequestMessage[], max_tokens?: number, temperature?: number) => {
   const response = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     messages,
@@ -55,6 +55,22 @@ export const createCompletionFromConversation = async (
     return response[0].message?.content;
   } catch (e) {
     handleError(context, e);
+    return null;
+  }
+};
+
+export const createTitleFromConversation = async (messages: ChatCompletionRequestMessage[]) => {
+  try {
+    const response = await createCompletion([
+      ...messages,
+      {
+        role: 'user',
+        content: 'What would be a short and relevant title for this chat? You must strictly answer with only the title, no other text is allowed.'
+      }
+    ]);
+    return response[0].message?.content;
+  } catch (e) {
+    console.error(e);
     return null;
   }
 };

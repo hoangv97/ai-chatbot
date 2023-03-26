@@ -4,7 +4,7 @@ import { router, text } from "bottender/router";
 import { COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "./const";
 import { clearServiceData, showDebug } from "./context";
 import { handleAudioForChat } from "./models/audio";
-import { handleChat, handleTelegramCharacter } from "./models/text";
+import { handleChat, handleTelegramCharacter, saveConversation } from "./models/text";
 import { handleUrlPrompt } from "./models/url";
 
 async function HandleApps(context: TelegramContext) {
@@ -54,11 +54,17 @@ async function Command(
     case 'new':
       await clearServiceData(context);
       break;
+    case 'save':
+      await saveConversation(context)
+      break
+    case 'continue':
+      // TODO continue saved conversation
+      break
     case 'debug':
       await showDebug(context)
       break;
     case 'help':
-      const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
+      const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
       await context.sendMessage(helpContent, { parseMode: ParseMode.Markdown });
       break;
     default:

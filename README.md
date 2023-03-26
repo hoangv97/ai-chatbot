@@ -24,6 +24,7 @@ yarn run start
 ```text
 apps - Show all apps
 new - New conversation
+save - Save conversation
 debug - Debug
 help - How to use this bot?
 ```

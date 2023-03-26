@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@mozilla/readability": "^0.4.2",
+    "@notionhq/client": "^2.2.3",
     "@resemble/node": "^2.0.2",
     "@types/cors": "^2.8.13",
     "@types/jsdom": "^21.1.0",

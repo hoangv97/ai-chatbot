@@ -1,6 +1,6 @@
 import { MessengerContext, TelegramContext } from 'bottender';
 import { ParseMode } from 'bottender/dist/telegram/TelegramTypes';
-import { Payload_Type, SERVICES, Service_Type } from './const';
+import { DEFAULT_CHAT_SERVICE_ID, Payload_Type, SERVICES, Service_Type } from './const';
 import { getFieldNameByType, objectToJsonWithTruncatedUrls, splitByFirstSpace } from './helper';
 
 export const showDebug = async (context: MessengerContext | TelegramContext) => {
@@ -82,7 +82,7 @@ export const clearServiceData = async (context: MessengerContext | TelegramConte
   } else if (context.platform === 'telegram') {
     context.setState({
       ...context.state,
-      service: -1,
+      service: DEFAULT_CHAT_SERVICE_ID,
       query: {},
       context: [],
       data: {},
