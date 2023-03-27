@@ -3,7 +3,7 @@ import { ChatAction, ParseMode } from 'bottender/dist/telegram/TelegramTypes';
 import fs from 'fs';
 import { encode } from 'gpt-3-encoder';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
-import { convertOggToMp3, downloadFile } from '../helper';
+import { convertOggToMp3, downloadFile, parseCommand } from '../helper';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -168,14 +168,16 @@ export const generateImage = async (context: MessengerContext) => {
   }
 };
 
-export const generateImageTelegram = async (context: TelegramContext, content: string) => {
-  if (!content) {
-    await context.sendMessage(`Use command \`/imagine <prompt>\` to create image.`, { parseMode: ParseMode.Markdown })
+export const generateImageTelegram = async (context: TelegramContext, command: string) => {
+  if (!command) {
+    await context.sendMessage(`Use command \`/imagine <prompt> --n 1\` to create image.`, { parseMode: ParseMode.Markdown })
     return;
   }
   try {
     await context.sendChatAction(ChatAction.Typing);
-    const outputs = await createImage({ prompt: content, n: 1 });
+    const { content, params } = parseCommand(command) || {};
+    const { n } = params
+    const outputs = await createImage({ prompt: content, n: n || 1 });
     for (const image of outputs) {
       if (image.url) {
         await context.sendPhoto(image.url);

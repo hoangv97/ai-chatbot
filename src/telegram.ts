@@ -3,6 +3,7 @@ import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
 import { COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "./const";
 import { clearServiceData, showDebug } from "./context";
+import { parseCommand } from "./helper";
 import { handleAudioForChat } from "./models/audio";
 import { generateImageTelegram } from "./models/openai";
 import { handleChat, handleTelegramCharacter, saveConversation } from "./models/text";
@@ -46,6 +47,21 @@ async function HandleWebApp(context: TelegramContext) {
   }
 }
 
+export const handleTTS = async (context: TelegramContext, command: string) => {
+  const { content, params } = parseCommand(command) || {};
+  const { lang } = params || {}
+  const { replyToMessage } = context.event;
+  const { text } = replyToMessage || {}
+
+  if (!content && !text) {
+    await context.sendMessage(`Use command \`/speak <content> --lang en|vi\` to speak or reply any message with this command.`, { parseMode: ParseMode.Markdown })
+    return;
+  }
+  await context.sendChatAction(ChatAction.Typing);
+  console.log(text, content, lang)
+  // TODO implement this
+}
+
 
 async function Command(
   context: TelegramContext,
@@ -70,6 +86,9 @@ async function Command(
       break
     case 'imagine':
       await generateImageTelegram(context, content)
+      break;
+    case 'speak':
+      await handleTTS(context, content)
       break;
     case 'debug':
       await showDebug(context)
@@ -116,10 +135,16 @@ async function HandleUrl(context: TelegramContext) {
 
 async function Others(context: TelegramContext) {
   await context.sendChatAction(ChatAction.Typing);
+  let { text, replyToMessage } = context.event;
+  const { text: replyText } = replyToMessage || {}
+  if (replyText) {
+    text += `\n${replyText}`
+  }
+
   if (context.state.service === URL_SERVICE_ID) {
-    await handleUrlPrompt(context, context.event.text);
+    await handleUrlPrompt(context, text);
   } else {
-    await handleChat(context, context.event.text)
+    await handleChat(context, text)
   }
 }
 
