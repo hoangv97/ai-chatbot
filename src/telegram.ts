@@ -9,6 +9,33 @@ import { generateImageTelegram } from "./models/openai";
 import { handleChat, handleTelegramCharacter, saveConversation } from "./models/text";
 import { handleUrlPrompt } from "./models/url";
 
+async function showHelp(context: TelegramContext) {
+  const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
+  await context.sendMessage(helpContent, { parseMode: ParseMode.Markdown });
+}
+
+function isLoggedIn(context: TelegramContext) {
+  const { auth } = context.state.settings || {} as any
+  return !!auth
+}
+
+async function handleAuth(context: TelegramContext) {
+  const { text } = context.event;
+  if (text === process.env.AUTH_KEY) {
+    context.setState({
+      ...context.state,
+      settings: {
+        auth: true,
+      },
+    })
+    await context.sendMessage(`Good. You may enter now 😎`, { parseMode: ParseMode.Markdown })
+    await showHelp(context)
+  } else {
+    await context.sendMessage(`Give me the key before entering.\n\nщ(゜ロ゜щ)`, { parseMode: ParseMode.Markdown })
+  }
+}
+
+
 async function HandleApps(context: TelegramContext) {
   const charactersUrl = `${process.env.PROD_API_URL}/static/telegram/characters.html`
   await context.sendText('Apps:', {
@@ -94,8 +121,7 @@ async function Command(
       await showDebug(context)
       break;
     case 'help':
-      const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
-      await context.sendMessage(helpContent, { parseMode: ParseMode.Markdown });
+      await showHelp(context)
       break;
     default:
       await context.sendText('Sorry! Command not found.');
@@ -150,6 +176,9 @@ async function Others(context: TelegramContext) {
 
 const handleTelegram = (context: TelegramContext) => {
   // console.log(context.event)
+  if (!isLoggedIn(context)) {
+    return handleAuth;
+  }
   if (context.event.message.webAppData) {
     return HandleWebApp;
   }
