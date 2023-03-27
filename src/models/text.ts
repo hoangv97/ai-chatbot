@@ -285,6 +285,6 @@ export const saveConversation = async (context: TelegramContext) => {
     ]).flat()
   })
   if (response) {
-    await context.sendText('Saved conversation.')
+    await context.sendMessage(`Saved conversation. Check it here: [Notion](https://notion.so/${response.id.replaceAll('-', '')})`, { parseMode: ParseMode.Markdown })
   }
 }

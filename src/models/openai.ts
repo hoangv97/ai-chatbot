@@ -1,4 +1,5 @@
 import { MessengerContext, TelegramContext } from 'bottender';
+import { ChatAction, ParseMode } from 'bottender/dist/telegram/TelegramTypes';
 import fs from 'fs';
 import { encode } from 'gpt-3-encoder';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
@@ -166,3 +167,21 @@ export const generateImage = async (context: MessengerContext) => {
     handleError(context, e);
   }
 };
+
+export const generateImageTelegram = async (context: TelegramContext, content: string) => {
+  if (!content) {
+    await context.sendMessage(`Use command \`/imagine <prompt>\` to create image.`, { parseMode: ParseMode.Markdown })
+    return;
+  }
+  try {
+    await context.sendChatAction(ChatAction.Typing);
+    const outputs = await createImage({ prompt: content, n: 1 });
+    for (const image of outputs) {
+      if (image.url) {
+        await context.sendPhoto(image.url);
+      }
+    }
+  } catch (e) {
+    handleError(context, e);
+  }
+}

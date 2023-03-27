@@ -4,6 +4,7 @@ import { router, text } from "bottender/router";
 import { COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "./const";
 import { clearServiceData, showDebug } from "./context";
 import { handleAudioForChat } from "./models/audio";
+import { generateImageTelegram } from "./models/openai";
 import { handleChat, handleTelegramCharacter, saveConversation } from "./models/text";
 import { handleUrlPrompt } from "./models/url";
 
@@ -67,6 +68,9 @@ async function Command(
     case 'continue':
       // TODO continue saved conversation
       break
+    case 'imagine':
+      await generateImageTelegram(context, content)
+      break;
     case 'debug':
       await showDebug(context)
       break;
