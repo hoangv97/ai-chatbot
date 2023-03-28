@@ -40,6 +40,10 @@ help - How to use this bot?
 
 - Add Telegram bot with ChatGPT
 
+28/3
+
+- Add voice chat to Telegram bot
+
 ## Configuration
 
 ### The `bottender.config.js` File

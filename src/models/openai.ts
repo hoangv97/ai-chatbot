@@ -165,14 +165,23 @@ export const generateImage = async (context: MessengerContext) => {
 };
 
 export const generateImageTelegram = async (context: TelegramContext, command: string) => {
-  if (!command) {
+  let { content, params } = parseCommand(command) || {};
+  const { n } = params || {}
+  const { replyToMessage } = context.event;
+  const { text: replyText } = replyToMessage || {}
+
+  if (!content && !replyText) {
     await context.sendMessage(`Use command \`/imagine <prompt> --n 1\` to create image.`, { parseMode: ParseMode.Markdown })
     return;
   }
+
+  content = content || ''
+  if (replyText) {
+    content = replyText
+  }
+
   try {
     await context.sendChatAction(ChatAction.Typing);
-    const { content, params } = parseCommand(command) || {};
-    const { n } = params
     const outputs = await createImage({ prompt: content, n: n || 1 });
     for (const image of outputs) {
       if (image.url) {

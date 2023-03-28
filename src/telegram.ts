@@ -85,7 +85,6 @@ export const handleTTS = async (context: TelegramContext, command: string) => {
     await context.sendMessage(`Use command \`/speak <content> --voice <azure_voice>\` to speak or reply any message with this command.`, { parseMode: ParseMode.Markdown })
     return;
   }
-  await context.sendChatAction(ChatAction.Typing);
 
   content = content || ''
   if (replyText) {

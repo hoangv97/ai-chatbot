@@ -142,6 +142,8 @@ export const handleTextToSpeech = async (context: MessengerContext, message: str
 
 export const handleTextToSpeechTelegram = async (context: TelegramContext, message: string, voiceName?: string) => {
   try {
+    await context.sendChatAction(ChatAction.Typing);
+
     const fileId = uuidv4().replaceAll('-', '')
     const outputDir = `static/voices`
     const outputFile = `${outputDir}/voice_${fileId}.ogg`
