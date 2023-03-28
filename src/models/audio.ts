@@ -1,15 +1,18 @@
 import { Resemble } from "@resemble/node";
 import { MessengerContext, TelegramContext } from "bottender";
+import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
+import { MongoClient } from 'mongodb';
+import { v4 as uuidv4 } from 'uuid';
+import { textToSpeech } from "../api/azure";
+import { getFileUrl } from "../api/telegram";
 import { Output_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../const";
 import { getActiveService } from "../context";
-import { sleep } from "../helper";
+import { deleteDownloadFile, encodeOggWithOpus, sleep } from "../helper";
+import { getAzureVoiceName, getWhisperLang } from "../settings";
+import { getTranscription } from "./openai";
 import { getPrediction, postPrediction } from "./prediction";
 import { handleChat } from "./text";
 import { handleUrlPrompt } from "./url";
-import { MongoClient } from 'mongodb'
-import { getTranscription } from "./openai";
-import { getFileUrl } from "../api/telegram";
-import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 
 export const handleAudioForChat = async (context: MessengerContext | TelegramContext) => {
   let transcription
@@ -18,7 +21,7 @@ export const handleAudioForChat = async (context: MessengerContext | TelegramCon
   } else if (context.platform === 'telegram') {
     const fileUrl = await getFileUrl(context.event.voice.fileId)
     if (fileUrl) {
-      transcription = await getTranscription(context, fileUrl)
+      transcription = await getTranscription(context, fileUrl, getWhisperLang(context))
     }
   }
   if (!transcription) {
@@ -134,5 +137,30 @@ export const handleTextToSpeech = async (context: MessengerContext, message: str
     }
   } catch (e) {
     console.error(e);
+  }
+}
+
+export const handleTextToSpeechTelegram = async (context: TelegramContext, message: string, voiceName?: string) => {
+  try {
+    const fileId = uuidv4().replaceAll('-', '')
+    const outputDir = `static/voices`
+    const outputFile = `${outputDir}/voice_${fileId}.ogg`
+    const encodedOutputFile = `${outputDir}/voice_${fileId}_encoded.ogg`
+
+    const result = await textToSpeech(
+      message || '',
+      outputFile,
+      voiceName || getAzureVoiceName(context)
+    )
+    await encodeOggWithOpus(outputFile, encodedOutputFile)
+
+    const voiceUrl = `${process.env.PROD_API_URL}/${encodedOutputFile}`
+
+    await context.sendVoice(voiceUrl)
+
+    deleteDownloadFile(outputFile)
+    deleteDownloadFile(encodedOutputFile)
+  } catch (err) {
+    console.trace("err - " + err);
   }
 }

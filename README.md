@@ -27,6 +27,9 @@ new - New conversation
 save - Save conversation
 imagine - Create image from text
 speak - Text to speech
+settings - Settings
+default_settings - Default settings
+voices - Get Azure voices list
 debug - Debug
 help - How to use this bot?
 ```

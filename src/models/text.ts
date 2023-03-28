@@ -3,6 +3,8 @@ import { MessengerContext, TelegramContext } from "bottender";
 import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { ChatCompletionRequestMessage } from "openai";
 import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, DEFAULT_CHAT_SERVICE_ID, Payload_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../const";
+import { getAzureVoiceName, isAutoSpeak } from "../settings";
+import { handleTextToSpeechTelegram } from "./audio";
 import { getSystems, IChatSystem } from "./chat_system";
 import { createCompletionFromConversation, createTitleFromConversation } from "./openai";
 
@@ -53,6 +55,9 @@ const handleChatResponse = async (context: MessengerContext | TelegramContext, r
       return escapedUnderscores;
     })
     await context.sendMessage(content, { parseMode: ParseMode.Markdown });
+    if (isAutoSpeak(context)) {
+      await handleTextToSpeechTelegram(context, content, getAzureVoiceName(context))
+    }
   }
 
   if (suggestions) {

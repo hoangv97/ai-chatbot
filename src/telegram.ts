@@ -4,10 +4,11 @@ import { router, text } from "bottender/router";
 import { COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "./const";
 import { clearServiceData, showDebug } from "./context";
 import { parseCommand } from "./helper";
-import { handleAudioForChat } from "./models/audio";
+import { handleAudioForChat, handleTextToSpeechTelegram } from "./models/audio";
 import { generateImageTelegram } from "./models/openai";
 import { handleChat, handleTelegramCharacter, saveConversation } from "./models/text";
 import { handleUrlPrompt } from "./models/url";
+import { handleDefaultSettings, handleSettings, handleVoices } from "./settings";
 
 async function showHelp(context: TelegramContext) {
   const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
@@ -75,18 +76,26 @@ async function HandleWebApp(context: TelegramContext) {
 }
 
 export const handleTTS = async (context: TelegramContext, command: string) => {
-  const { content, params } = parseCommand(command) || {};
-  const { lang } = params || {}
+  let { content, params } = parseCommand(command) || {};
+  const { voice } = params || {}
   const { replyToMessage } = context.event;
-  const { text } = replyToMessage || {}
+  const { text: replyText } = replyToMessage || {}
 
-  if (!content && !text) {
-    await context.sendMessage(`Use command \`/speak <content> --lang en|vi\` to speak or reply any message with this command.`, { parseMode: ParseMode.Markdown })
+  if (!content && !replyText) {
+    await context.sendMessage(`Use command \`/speak <content> --voice <azure_voice>\` to speak or reply any message with this command.`, { parseMode: ParseMode.Markdown })
     return;
   }
   await context.sendChatAction(ChatAction.Typing);
-  console.log(text, content, lang)
-  // TODO implement this
+
+  content = content || ''
+  if (replyText) {
+    content += `\n${replyText}`
+  }
+  content = content.trim()
+
+  if (content) {
+    await handleTextToSpeechTelegram(context, content, voice)
+  }
 }
 
 
@@ -116,6 +125,15 @@ async function Command(
       break;
     case 'speak':
       await handleTTS(context, content)
+      break;
+    case 'voices':
+      await handleVoices(context, content)
+      break;
+    case 'settings':
+      await handleSettings(context, content)
+      break;
+    case 'default_settings':
+      await handleDefaultSettings(context)
       break;
     case 'debug':
       await showDebug(context)

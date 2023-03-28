@@ -66,3 +66,5 @@ typings/
 dist
 
 downloads
+
+static/voices/voice_*.ogg

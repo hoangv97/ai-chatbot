@@ -3,7 +3,7 @@ import { ChatAction, ParseMode } from 'bottender/dist/telegram/TelegramTypes';
 import fs from 'fs';
 import { encode } from 'gpt-3-encoder';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
-import { convertOggToMp3, downloadFile, parseCommand } from '../helper';
+import { convertOggToMp3, deleteDownloadFile, downloadFile, parseCommand } from '../helper';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -76,16 +76,7 @@ export const createTitleFromConversation = async (messages: ChatCompletionReques
   }
 };
 
-const deleteDownloadFile = (filePath: string) => {
-  fs.unlink(filePath, (err) => {
-    if (err) {
-      console.log(err)
-    };
-    // console.log(`${filePath} was deleted`);
-  })
-}
-
-export const getTranscription = async (context: MessengerContext | TelegramContext, url: string) => {
+export const getTranscription = async (context: MessengerContext | TelegramContext, url: string, language?: string) => {
   try {
     let filePath = await downloadFile(url, downloadsPath);
     if (filePath.endsWith('.oga')) {
@@ -94,7 +85,12 @@ export const getTranscription = async (context: MessengerContext | TelegramConte
       deleteDownloadFile(filePath)
       filePath = newFilePath
     }
-    const response = await openai.createTranscription(fs.createReadStream(filePath) as any, 'whisper-1');
+    const response = await openai.createTranscription(
+      fs.createReadStream(filePath) as any,
+      'whisper-1',
+      undefined, undefined, undefined,
+      language,
+    );
     deleteDownloadFile(filePath)
     return response.data.text
   } catch (e) {

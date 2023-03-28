@@ -78,6 +78,15 @@ export const getFieldNameByType = (service: any, type: string) => {
   return field.name;
 };
 
+export const deleteDownloadFile = (filePath: string) => {
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.log(err)
+    };
+    // console.log(`${filePath} was deleted`);
+  })
+}
+
 export function downloadFile(url: string, outputDir: string): Promise<string> {
   return new Promise((resolve, reject) => {
     https
@@ -132,6 +141,19 @@ const asyncExec = promisify(exec);
 export const convertOggToMp3 = async (inputFile: string, outputFile: string) => {
   try {
     const { stdout, stderr } = await asyncExec(`ffmpeg -loglevel error -i ${inputFile} -c:a libmp3lame -q:a 2 ${outputFile}`);
+    // console.log(stdout);
+
+    if (stderr) {
+      console.error(stderr);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+export const encodeOggWithOpus = async (inputFile: string, outputFile: string) => {
+  try {
+    const { stdout, stderr } = await asyncExec(`ffmpeg -loglevel error -i ${inputFile} -c:a libopus -b:a 96K ${outputFile}`);
     // console.log(stdout);
 
     if (stderr) {
