@@ -22,15 +22,15 @@ yarn run start
 ### Telegram commands
 
 ```text
-apps - Show all apps
 new - New conversation
-save - Save conversation
-imagine - Create image from text
 speak - Text to speech
+imagine - Create image from text
+apps - Show all apps
 settings - Settings
-default_settings - Default settings
 voices - Get Azure voices list
+save - Save conversation
 debug - Debug
+default_settings - Default settings
 help - How to use this bot?
 ```
 

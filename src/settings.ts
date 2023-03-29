@@ -42,7 +42,7 @@ export const handleVoices = async (context: TelegramContext, command: string) =>
   const getGender = (id: number) => ['Unknown', 'Female', 'Male'][id]
 
   if (!command || command.length < 5) {
-    await context.sendMessage(`Use command \`/voices <language>\` to get list of [voices](https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/language-support?tabs=tts).\n\nQuick commands: \n${quickCmds}`, { parseMode: ParseMode.Markdown })
+    await context.sendMessage(`Use command \`/voices <language>\` to get list of [voices](https://learn.microsoft.com/en-us/azure/cognitive-services/speech-service/language-support?tabs=tts).\n\nQuick commands: \n${quickCmds}`, { parseMode: ParseMode.Markdown, disableWebPagePreview: true })
     return;
   }
 
