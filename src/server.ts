@@ -5,7 +5,6 @@ import express from 'express';
 import mongoose from 'mongoose';
 import ChatSystemController from './api/chat_system';
 import { handleWebhooks } from './models/resemble';
-import path from 'path'
 
 const app = bottender({
   dev: process.env.NODE_ENV !== 'production',
