@@ -1,14 +1,14 @@
 import { TelegramContext } from "bottender";
 import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
-import { COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "./const";
-import { clearServiceData, showDebug } from "./context";
-import { parseCommand } from "./helper";
-import { handleAudioForChat, handleTextToSpeechTelegram } from "./models/audio";
-import { generateImageTelegram } from "./models/openai";
-import { handleChat, handleTelegramCharacter, saveConversation } from "./models/text";
-import { handleUrlPrompt } from "./models/url";
-import { handleDefaultSettings, handleSettings, handleVoices } from "./settings";
+import { handleAudioForChat, handleTextToSpeechTelegram } from "../models/audio";
+import { generateImageTelegram } from "../models/openai";
+import { handleChat, handleTelegramCharacter, saveConversation } from "../models/text";
+import { handleUrlPrompt } from "../models/url";
+import { COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "../utils/const";
+import { clearServiceData, showDebug } from "../utils/context";
+import { parseCommand } from "../utils/helper";
+import { handleDefaultSettings, handleSettings, handleVoices } from "../utils/settings";
 
 async function showHelp(context: TelegramContext) {
   const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`

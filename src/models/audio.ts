@@ -3,25 +3,51 @@ import { MessengerContext, TelegramContext } from "bottender";
 import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { MongoClient } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
-import { textToSpeech } from "../api/azure";
+import { speechToText, textToSpeech } from "../api/azure";
 import { getFileUrl } from "../api/telegram";
-import { Output_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../const";
-import { getActiveService } from "../context";
-import { deleteDownloadFile, encodeOggWithOpus, sleep } from "../helper";
-import { getAzureVoiceName, getWhisperLang } from "../settings";
+import { DOWNLOADS_PATH, Output_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../utils/const";
+import { getActiveService } from "../utils/context";
+import { convertOggToWav, deleteDownloadFile, downloadFile, encodeOggWithOpus } from "../utils/file";
+import { sleep } from "../utils/helper";
+import { getAzureRecognitionLang, getAzureVoiceName, getWhisperLang, speechRecognitionServices } from "../utils/settings";
 import { getTranscription } from "./openai";
 import { getPrediction, postPrediction } from "./prediction";
 import { handleChat } from "./text";
 import { handleUrlPrompt } from "./url";
 
+export const getAzureSpeechRecognition = async (context: MessengerContext | TelegramContext, fileUrl: string) => {
+  try {
+    let filePath = await downloadFile(fileUrl, DOWNLOADS_PATH);
+    if (filePath.endsWith('.oga')) {
+      const newFilePath = filePath.replace('.oga', '.wav')
+      await convertOggToWav(filePath, newFilePath)
+      deleteDownloadFile(filePath)
+      filePath = newFilePath
+    }
+    const response = await speechToText(filePath, getAzureRecognitionLang(context))
+    deleteDownloadFile(filePath)
+    return response
+  } catch (e) {
+    return null;
+  }
+}
+
 export const handleAudioForChat = async (context: MessengerContext | TelegramContext) => {
   let transcription
   if (context.platform === 'messenger') {
-    transcription = await getTranscription(context, context.event.audio.url)
+    if (getAzureRecognitionLang(context) === speechRecognitionServices.azure) {
+      transcription = await getAzureSpeechRecognition(context, context.event.audio.url)
+    } else {
+      transcription = await getTranscription(context, context.event.audio.url)
+    }
   } else if (context.platform === 'telegram') {
     const fileUrl = await getFileUrl(context.event.voice.fileId)
     if (fileUrl) {
-      transcription = await getTranscription(context, fileUrl, getWhisperLang(context))
+      if (getAzureRecognitionLang(context) === speechRecognitionServices.azure) {
+        transcription = await getAzureSpeechRecognition(context, fileUrl)
+      } else {
+        transcription = await getTranscription(context, fileUrl, getWhisperLang(context))
+      }
     }
   }
   if (!transcription) {

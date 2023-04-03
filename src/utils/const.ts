@@ -1,9 +1,11 @@
 import {
   generateImage
-} from './models/openai';
+} from '../models/openai';
 
 export const URL_REGEX = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/i
 export const COMMAND_REGEX = /^[/.](?<command>\w+)(?:\s(?<content>.+))?/i
+
+export const DOWNLOADS_PATH = './downloads';
 
 export const Payload_Type = {
   Select_Service: 'Select_Service_',

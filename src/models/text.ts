@@ -2,10 +2,10 @@ import { Client } from "@notionhq/client";
 import { MessengerContext, TelegramContext } from "bottender";
 import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { ChatCompletionRequestMessage } from "openai";
-import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, DEFAULT_CHAT_SERVICE_ID, Payload_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../const";
-import { getAzureVoiceName, isAutoSpeak } from "../settings";
+import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, DEFAULT_CHAT_SERVICE_ID, Payload_Type, SERVICES, Service_Type } from "../utils/const";
+import { getAzureVoiceName, isAutoSpeak } from "../utils/settings";
 import { handleTextToSpeechTelegram } from "./audio";
-import { getSystems, IChatSystem } from "./chat_system";
+import { IChatSystem, getSystems } from "./chat_system";
 import { createCompletionFromConversation, createTitleFromConversation } from "./openai";
 
 export const selectChatSystems = async (context: MessengerContext, name: string) => {

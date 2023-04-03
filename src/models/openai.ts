@@ -3,7 +3,9 @@ import { ChatAction, ParseMode } from 'bottender/dist/telegram/TelegramTypes';
 import fs from 'fs';
 import { encode } from 'gpt-3-encoder';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
-import { convertOggToMp3, deleteDownloadFile, downloadFile, parseCommand } from '../helper';
+import { DOWNLOADS_PATH } from '../utils/const';
+import { convertOggToMp3, deleteDownloadFile, downloadFile } from '../utils/file';
+import { parseCommand } from '../utils/helper';
 
 const configuration = new Configuration({
   apiKey: process.env.OPENAI_API_KEY,
@@ -11,8 +13,6 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export const GPT3_MAX_TOKENS = 4096;
-
-const downloadsPath = './downloads';
 
 const handleError = async (context: MessengerContext | TelegramContext, error: any) => {
   let message;
@@ -78,7 +78,7 @@ export const createTitleFromConversation = async (messages: ChatCompletionReques
 
 export const getTranscription = async (context: MessengerContext | TelegramContext, url: string, language?: string) => {
   try {
-    let filePath = await downloadFile(url, downloadsPath);
+    let filePath = await downloadFile(url, DOWNLOADS_PATH);
     if (filePath.endsWith('.oga')) {
       const newFilePath = filePath.replace('.oga', '.mp3')
       await convertOggToMp3(filePath, newFilePath)
@@ -111,7 +111,7 @@ const createImage = async ({ prompt, n }: any) => {
 
 
 const createImageEdit = async ({ prompt, image, n }: any) => {
-  const filePath = await downloadFile(image, downloadsPath);
+  const filePath = await downloadFile(image, DOWNLOADS_PATH);
   const response = await openai.createImageEdit(
     fs.createReadStream(filePath) as any,
     prompt,
@@ -125,7 +125,7 @@ const createImageEdit = async ({ prompt, image, n }: any) => {
 };
 
 const createImageVariation = async ({ image, n }: any) => {
-  const filePath = await downloadFile(image, downloadsPath);
+  const filePath = await downloadFile(image, DOWNLOADS_PATH);
   const response = await openai.createImageVariation(
     fs.createReadStream(filePath) as any,
     n ? parseInt(n) : undefined,

@@ -2,9 +2,9 @@ import axios from 'axios';
 import { MessengerContext, TelegramContext } from 'bottender';
 import { ParseMode } from 'bottender/dist/telegram/TelegramTypes';
 import { encode } from 'gpt-3-encoder';
-import { Payload_Type } from '../const';
-import { selectService } from '../context';
-import { truncate } from '../helper';
+import { Payload_Type } from '../utils/const';
+import { selectService } from '../utils/context';
+import { truncate } from '../utils/helper';
 import { GPT3_MAX_TOKENS } from './openai';
 
 export const URL_ACTIONS = [

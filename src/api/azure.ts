@@ -1,4 +1,5 @@
-import { SpeechConfig, AudioConfig, SpeechSynthesizer, ResultReason } from 'microsoft-cognitiveservices-speech-sdk'
+import fs from 'fs';
+import { AudioConfig, ResultReason, SpeechConfig, SpeechRecognizer, SpeechSynthesizer } from 'microsoft-cognitiveservices-speech-sdk';
 
 export const getVoices = async (locales: string[]) => {
   const speechConfig = SpeechConfig.fromSubscription(process.env.AZURE_SPEECH_KEY || '', process.env.AZURE_SPEECH_REGION || '');
@@ -41,4 +42,27 @@ export const textToSpeech = async (text: string, outputFile: string, voiceName?:
         reject(err);
       });
   });
+}
+
+export const speechToText = async (audioFile: string, language?: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    // This example requires environment variables named "SPEECH_KEY" and "SPEECH_REGION"
+    const speechConfig = SpeechConfig.fromSubscription(process.env.AZURE_SPEECH_KEY || '', process.env.AZURE_SPEECH_REGION || '');
+    speechConfig.speechRecognitionLanguage = language || "en-US";
+
+    const audioConfig = AudioConfig.fromWavFileInput(fs.readFileSync(audioFile));
+
+    // Create the speech recognizer.
+    const recognizer = new SpeechRecognizer(speechConfig, audioConfig);
+
+    recognizer.recognizeOnceAsync(
+      function (result) {
+        recognizer.close();
+        resolve(result.text);
+      },
+      function (err) {
+        recognizer.close();
+        reject(err);
+      });
+  })
 }

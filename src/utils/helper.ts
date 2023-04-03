@@ -1,11 +1,6 @@
 import { Readability } from '@mozilla/readability';
 import axios from 'axios';
-import { exec } from 'child_process';
-import fs from 'fs';
-import https from 'https';
 import { JSDOM } from 'jsdom';
-import path from 'path';
-import { promisify } from 'util';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -78,50 +73,6 @@ export const getFieldNameByType = (service: any, type: string) => {
   return field.name;
 };
 
-export const deleteDownloadFile = (filePath: string) => {
-  fs.unlink(filePath, (err) => {
-    if (err) {
-      console.log(err)
-    };
-    // console.log(`${filePath} was deleted`);
-  })
-}
-
-export function downloadFile(url: string, outputDir: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    https
-      .get(url, (response) => {
-        const { statusCode } = response;
-        const contentType = response.headers['content-type'];
-
-        if (statusCode !== 200) {
-          reject(new Error(`Request failed with status code ${statusCode}`));
-          return;
-        }
-
-        let fileName = (url.split('/').pop() || '').split('?')[0];
-        let fileExtension = path.extname(fileName);
-        if (fileExtension === '') {
-          fileExtension = (contentType || '').split('/')[1];
-        }
-
-        const outputPath = path.join(outputDir, fileName);
-
-        const writeStream = fs.createWriteStream(outputPath);
-        response.pipe(writeStream);
-
-        writeStream.on('finish', () => {
-          writeStream.close(() => {
-            resolve(outputPath);
-          });
-        });
-      })
-      .on('error', (error) => {
-        reject(error);
-      });
-  });
-}
-
 export async function getReadableContentFromUrl(url: string) {
   try {
     const response = await axios.get(url);
@@ -135,32 +86,3 @@ export async function getReadableContentFromUrl(url: string) {
     return null;
   }
 }
-
-const asyncExec = promisify(exec);
-
-export const convertOggToMp3 = async (inputFile: string, outputFile: string) => {
-  try {
-    const { stdout, stderr } = await asyncExec(`ffmpeg -loglevel error -i ${inputFile} -c:a libmp3lame -q:a 2 ${outputFile}`);
-    // console.log(stdout);
-
-    if (stderr) {
-      console.error(stderr);
-    }
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-export const encodeOggWithOpus = async (inputFile: string, outputFile: string) => {
-  try {
-    const { stdout, stderr } = await asyncExec(`ffmpeg -loglevel error -i ${inputFile} -c:a libopus -b:a 96K ${outputFile}`);
-    // console.log(stdout);
-
-    if (stderr) {
-      console.error(stderr);
-    }
-  } catch (err) {
-    console.error(err);
-  }
-}
-

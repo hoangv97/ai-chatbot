@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { MessengerContext } from 'bottender';
-import { Output_Type, SERVICES } from '../const';
-import { getActiveService } from '../context';
-import { sleep } from '../helper';
+import { Output_Type } from '../utils/const';
+import { getActiveService } from '../utils/context';
+import { sleep } from '../utils/helper';
 
 export async function postPrediction(context: MessengerContext, version: string, input: any) {
   try {

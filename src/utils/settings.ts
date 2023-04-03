@@ -1,6 +1,6 @@
-import { TelegramContext } from "bottender"
-import { ParseMode } from "bottender/dist/telegram/TelegramTypes"
-import { getVoices } from "./api/azure";
+import { MessengerContext, TelegramContext } from "bottender";
+import { ParseMode } from "bottender/dist/telegram/TelegramTypes";
+import { getVoices } from "../api/azure";
 import { objectToJsonWithTruncatedUrls, parseCommand } from "./helper";
 
 const quickCmdsText = `Quick commands
@@ -10,34 +10,35 @@ Auto speak when reply to message
 \`/settings --autoSpeak false\`
 
 Talking with me in any languages
-\`/settings --azureVoiceName en-US-AshleyNeural --whisperLang en\`
-\`/settings --azureVoiceName en-US-ChristopherNeural --whisperLang en\`
+\`/settings --azureVoiceName en-US-AshleyNeural --azureRecognitionLang en-US\`
+\`/settings --azureVoiceName en-US-ChristopherNeural --azureRecognitionLang en-US\`
 
-\`/settings --azureVoiceName vi-VN-HoaiMyNeural --whisperLang vi\`
-\`/settings --azureVoiceName vi-VN-NamMinhNeural --whisperLang vi\`
+\`/settings --azureVoiceName vi-VN-HoaiMyNeural --azureRecognitionLang vi-VN\`
+\`/settings --azureVoiceName vi-VN-NamMinhNeural --azureRecognitionLang vi-VN\`
 
-\`/settings --azureVoiceName zh-CN-XiaoxiaoNeural --whisperLang zh\`
-\`/settings --azureVoiceName zh-CN-YunyangNeural --whisperLang zh\`
+\`/settings --azureVoiceName zh-CN-XiaoxiaoNeural --azureRecognitionLang zh-CN\`
+\`/settings --azureVoiceName zh-CN-YunyangNeural --azureRecognitionLang zh-CN\`
 
-\`/settings --azureVoiceName ja-JP-NanamiNeural --whisperLang ja\`
-\`/settings --azureVoiceName ja-JP-DaichiNeural --whisperLang ja\`
+\`/settings --azureVoiceName ja-JP-NanamiNeural --azureRecognitionLang ja-JP\`
+\`/settings --azureVoiceName ja-JP-DaichiNeural --azureRecognitionLang ja-JP\`
 `
 
+const LOCALES_LIST = [
+  'en-US',
+  'en-GB',
+  'en-AU',
+  'fr-FR',
+  'es-ES',
+  'de-DE',
+  'it-IT',
+  'ja-JP',
+  'ko-KR',
+  'zh-CN',
+  'vi-VN',
+]
+
 export const handleVoices = async (context: TelegramContext, command: string) => {
-  const localesList = [
-    'en-US',
-    'en-GB',
-    'en-AU',
-    'fr-FR',
-    'es-ES',
-    'de-DE',
-    'it-IT',
-    'ja-JP',
-    'ko-KR',
-    'zh-CN',
-    'vi-VN',
-  ]
-  const quickCmds = localesList.map(locale => `\`/voices ${locale}\``).join('\n');
+  const quickCmds = LOCALES_LIST.map(locale => `\`/voices ${locale}\``).join('\n');
 
   const getGender = (id: number) => ['Unknown', 'Female', 'Male'][id]
 
@@ -106,7 +107,7 @@ export const sendHelpSettings = async (context: TelegramContext) => {
   await context.sendMessage(quickCmdsText, { parseMode: ParseMode.Markdown })
 }
 
-const getSettings = (context: TelegramContext): any => {
+const getSettings = (context: TelegramContext | MessengerContext): any => {
   return context.state.settings || {}
 }
 
@@ -134,6 +135,19 @@ export const getAzureVoiceName = (context: TelegramContext) => {
   return getSettings(context).azureVoiceName || 'en-US-JennyNeural';
 }
 
+export const getAzureRecognitionLang = (context: TelegramContext | MessengerContext) => {
+  return getSettings(context).azureRecognitionLang || 'en-US';
+}
+
 export const getWhisperLang = (context: TelegramContext) => {
   return getSettings(context).whisperLang || 'en';
+}
+
+export const speechRecognitionServices = {
+  azure: 'azure',
+  whisper: 'whisper',
+}
+
+export const getSpeechRecognitionService = (context: TelegramContext) => {
+  return getSettings(context).speechRecognitionService || speechRecognitionServices.azure;
 }
