@@ -11,7 +11,7 @@ import { convertOggToWav, deleteDownloadFile, downloadFile, encodeOggWithOpus } 
 import { sleep } from "../utils/helper";
 import { getAzureRecognitionLang, getAzureVoiceName, getWhisperLang, speechRecognitionServices } from "../utils/settings";
 import { getTranscription } from "./openai";
-import { getPrediction, postPrediction } from "./prediction";
+import { getPrediction, postPrediction } from "./replicate";
 import { handleChat } from "./text";
 import { handleUrlPrompt } from "./url";
 

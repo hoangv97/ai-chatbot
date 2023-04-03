@@ -2,7 +2,7 @@ import { MessengerContext } from 'bottender';
 import { messenger, payload, router, text } from 'bottender/router';
 import { getMessage } from '../api/messenger';
 import { handleAudioForChat, handleTextToSpeech } from '../models/audio';
-import { runPrediction } from '../models/prediction';
+import { runPrediction } from '../models/replicate';
 import { handleChat, handleChatSuggestionsPayload, handleChatSystemPayload, handleViewChatSuggestionsPayload, selectChatSystems } from '../models/text';
 import { handleUrlPayload, handleUrlPrompt } from '../models/url';
 import { COMMAND_REGEX, Payload_Type, Service_Type, URL_REGEX, URL_SERVICE_ID } from '../utils/const';
