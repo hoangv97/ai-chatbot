@@ -22,6 +22,7 @@ yarn run start
 ### Telegram commands
 
 ```text
+ai - Activate Ai
 new - New conversation
 speak - Text to speech
 imagine - Create image from text

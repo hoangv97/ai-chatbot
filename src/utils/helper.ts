@@ -4,6 +4,10 @@ import { JSDOM } from 'jsdom';
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+export const randomFromArray = (arr: any[]) => {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
 export const truncate = (str: string, maxLength: number) => {
   return str.length > maxLength
     ? str.slice(0, maxLength) + '...'

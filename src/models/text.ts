@@ -2,7 +2,7 @@ import { Client } from "@notionhq/client";
 import { MessengerContext, TelegramContext } from "bottender";
 import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { ChatCompletionRequestMessage } from "openai";
-import { CHAT_RESPONSE_SUGGESTIONS_SPLITTER, DEFAULT_CHAT_SERVICE_ID, Payload_Type, SERVICES, Service_Type } from "../utils/const";
+import { ASSISTANT_SERVICE_ID, CHAT_RESPONSE_SUGGESTIONS_SPLITTER, DEFAULT_CHAT_SERVICE_ID, Payload_Type, SERVICES, Service_Type } from "../utils/const";
 import { getAzureVoiceName, isAutoSpeak } from "../utils/settings";
 import { handleTextToSpeechTelegram } from "./audio";
 import { IChatSystem, getSystems } from "./chat_system";
@@ -33,7 +33,7 @@ export const selectChatSystems = async (context: MessengerContext, name: string)
   }
 }
 
-const handleChatResponse = async (context: MessengerContext | TelegramContext, response: string | null | undefined) => {
+export const handleChatResponse = async (context: MessengerContext | TelegramContext, response: string | null | undefined) => {
   if (!response) {
     await context.sendText(
       'Sorry! Please try again or select new assistant by `/m`'
@@ -43,7 +43,7 @@ const handleChatResponse = async (context: MessengerContext | TelegramContext, r
 
   let [content, suggestions] = response.split(CHAT_RESPONSE_SUGGESTIONS_SPLITTER)
   content = content.trim()
-  // console.log(content)
+  // console.log(response, content, suggestions)
 
   if (context.platform === 'messenger') {
     await context.sendText(content);
@@ -54,7 +54,9 @@ const handleChatResponse = async (context: MessengerContext | TelegramContext, r
       const escapedUnderscores = "_".repeat(numUnderscores).split("").map(u => `\\${u}`).join("");
       return escapedUnderscores;
     })
-    await context.sendMessage(content, { parseMode: ParseMode.Markdown });
+    if (!suggestions) {
+      await context.sendMessage(content, { parseMode: ParseMode.Markdown });
+    }
     if (isAutoSpeak(context)) {
       await handleTextToSpeechTelegram(context, content, getAzureVoiceName(context))
     }
@@ -88,7 +90,8 @@ const handleChatResponse = async (context: MessengerContext | TelegramContext, r
           })), {}
       )
     } else if (context.platform === 'telegram') {
-      await context.sendText(`Select`, {
+      await context.sendMessage(content, {
+        parseMode: ParseMode.Markdown,
         replyMarkup: {
           keyboard: [
             suggestions
@@ -237,7 +240,10 @@ export const saveConversation = async (context: TelegramContext) => {
   await context.sendChatAction(ChatAction.Typing);
 
   const messages = context.state.context as any;
-  if (context.state.service !== DEFAULT_CHAT_SERVICE_ID || !messages || !messages.length) {
+  if (![DEFAULT_CHAT_SERVICE_ID, ASSISTANT_SERVICE_ID].includes(context.state.service as number)
+    || !messages
+    || !messages.length
+  ) {
     await context.sendText('There is no conversation.')
     return;
   }
