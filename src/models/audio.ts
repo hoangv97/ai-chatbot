@@ -5,11 +5,12 @@ import { MongoClient } from 'mongodb';
 import { v4 as uuidv4 } from 'uuid';
 import { speechToText, textToSpeech } from "../api/azure";
 import { getFileUrl } from "../api/telegram";
-import { DOWNLOADS_PATH, Output_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../utils/const";
+import { AGENTS_SERVICE_ID, DOWNLOADS_PATH, Output_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../utils/const";
 import { getActiveService } from "../utils/context";
 import { convertOggToWav, deleteDownloadFile, downloadFile, encodeOggWithOpus } from "../utils/file";
 import { sleep } from "../utils/helper";
-import { getAzureRecognitionLang, getAzureVoiceName, getWhisperLang, speechRecognitionServices } from "../utils/settings";
+import { getAzureRecognitionLang, getAzureVoiceName, getSpeechRecognitionService, getWhisperLang, speechRecognitionServices } from "../utils/settings";
+import { handleQueryAgents } from "./agents";
 import { getTranscription } from "./openai";
 import { getPrediction, postPrediction } from "./replicate";
 import { handleChat } from "./text";
@@ -35,7 +36,7 @@ export const getAzureSpeechRecognition = async (context: MessengerContext | Tele
 export const handleAudioForChat = async (context: MessengerContext | TelegramContext) => {
   let transcription
   if (context.platform === 'messenger') {
-    if (getAzureRecognitionLang(context) === speechRecognitionServices.azure) {
+    if (getSpeechRecognitionService(context) === speechRecognitionServices.azure) {
       transcription = await getAzureSpeechRecognition(context, context.event.audio.url)
     } else {
       transcription = await getTranscription(context, context.event.audio.url)
@@ -43,7 +44,7 @@ export const handleAudioForChat = async (context: MessengerContext | TelegramCon
   } else if (context.platform === 'telegram') {
     const fileUrl = await getFileUrl(context.event.voice.fileId)
     if (fileUrl) {
-      if (getAzureRecognitionLang(context) === speechRecognitionServices.azure) {
+      if (getSpeechRecognitionService(context) === speechRecognitionServices.azure) {
         transcription = await getAzureSpeechRecognition(context, fileUrl)
       } else {
         transcription = await getTranscription(context, fileUrl, getWhisperLang(context))
@@ -74,7 +75,12 @@ export const handleAudioForChat = async (context: MessengerContext | TelegramCon
     }
   } else if (context.platform === 'telegram') {
     await context.sendChatAction(ChatAction.Typing);
-    await handleChat(context, transcription)
+
+    if (context.state.service === AGENTS_SERVICE_ID) {
+      await handleQueryAgents(context, transcription)
+    } else {
+      await handleChat(context, transcription)
+    }
   }
 }
 

@@ -1,15 +1,16 @@
 import { TelegramContext } from "bottender";
 import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
+import { activateAgents, handleQueryAgents, showTools } from "../models/agents";
+import { activateAssistant } from "../models/assistant";
 import { handleAudioForChat, handleTextToSpeechTelegram } from "../models/audio";
 import { generateImageTelegram } from "../models/openai";
 import { handleChat, handleTelegramCharacter, saveConversation } from "../models/text";
 import { handleUrlPrompt } from "../models/url";
-import { COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "../utils/const";
+import { AGENTS_SERVICE_ID, COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "../utils/const";
 import { clearServiceData, showDebug } from "../utils/context";
 import { parseCommand } from "../utils/helper";
 import { handleDefaultSettings, handleSettings, handleVoices } from "../utils/settings";
-import { activateAssistant } from "../models/assistant";
 
 async function showHelp(context: TelegramContext) {
   const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
@@ -111,6 +112,9 @@ async function Command(
     case 'ai':
       await activateAssistant(context)
       break
+    case 'agents':
+      await activateAgents(context)
+      break
     case 'apps':
       await HandleApps(context)
       break;
@@ -135,7 +139,7 @@ async function Command(
     case 'settings':
       await handleSettings(context, content)
       break;
-    case 'default_settings':
+    case 'settings_default':
       await handleDefaultSettings(context)
       break;
     case 'debug':
@@ -190,6 +194,8 @@ async function Others(context: TelegramContext) {
 
   if (context.state.service === URL_SERVICE_ID) {
     await handleUrlPrompt(context, text);
+  } else if (context.state.service === AGENTS_SERVICE_ID) {
+    await handleQueryAgents(context, text)
   } else {
     await handleChat(context, text)
   }

@@ -70,6 +70,15 @@ export const handleVoices = async (context: TelegramContext, command: string) =>
   await context.sendMessage(text, { parseMode: ParseMode.Markdown })
 }
 
+export const getCurrentSettingsContent = (context: TelegramContext) => {
+  const currentSettings = { ...getSettings(context) }
+  delete currentSettings.auth
+
+  const currentSettingsContent = objectToJsonWithTruncatedUrls(currentSettings)
+  if (Object.keys(currentSettings).length > 0)
+    return currentSettingsContent
+  return null
+}
 
 export const handleSettings = async (context: TelegramContext, command: string) => {
   let { params } = parseCommand(command) || {};
@@ -80,7 +89,12 @@ export const handleSettings = async (context: TelegramContext, command: string) 
   for (let key in params) {
     setSettings(context, key, params[key])
   }
-  await context.sendMessage(`Settings updated.`, { parseMode: ParseMode.Markdown })
+  let msg = `Settings updated.`
+  const currentSettingsContent = getCurrentSettingsContent(context)
+  if (currentSettingsContent) {
+    msg += `\n\nCurrent settings:\n\`\`\`\n${currentSettingsContent}\`\`\``
+  }
+  await context.sendMessage(msg, { parseMode: ParseMode.Markdown })
 }
 
 export const handleDefaultSettings = async (context: TelegramContext) => {
@@ -94,12 +108,9 @@ export const handleDefaultSettings = async (context: TelegramContext) => {
 }
 
 export const sendHelpSettings = async (context: TelegramContext) => {
-  const currentSettings = { ...getSettings(context) }
-  delete currentSettings.auth
-
   let helpText = `Use command \`/settings --key value\` to use settings.\n\n`
-  const currentSettingsContent = objectToJsonWithTruncatedUrls(currentSettings)
-  if (Object.keys(currentSettings).length > 0) {
+  const currentSettingsContent = getCurrentSettingsContent(context)
+  if (currentSettingsContent) {
     helpText += `Current settings:\n\`\`\`\n${currentSettingsContent}\`\`\``
   }
 
@@ -148,6 +159,10 @@ export const speechRecognitionServices = {
   whisper: 'whisper',
 }
 
-export const getSpeechRecognitionService = (context: TelegramContext) => {
+export const getSpeechRecognitionService = (context: TelegramContext | MessengerContext) => {
   return getSettings(context).speechRecognitionService || speechRecognitionServices.azure;
+}
+
+export const getAgentsTools = (context: TelegramContext) => {
+  return getSettings(context).agentsTools || '';
 }

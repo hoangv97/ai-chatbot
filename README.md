@@ -23,15 +23,16 @@ yarn run start
 
 ```text
 ai - Activate Ai
+agents - Activate Agents
 new - New conversation
-speak - Text to speech
-imagine - Create image from text
 apps - Show all apps
-settings - Settings
 voices - Get Azure voices list
+imagine - Create image from text
+speak - Text to speech
 save - Save conversation
+settings - Settings
+settings_default - Default settings
 debug - Debug
-default_settings - Default settings
 help - How to use this bot?
 ```
 
