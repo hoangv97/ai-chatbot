@@ -33,6 +33,19 @@ export const getAzureSpeechRecognition = async (context: MessengerContext | Tele
   }
 }
 
+export const getTranscriptionFromTelegramFileId = async (context: TelegramContext, fileId: string) => {
+  let transcription
+  const fileUrl = await getFileUrl(fileId)
+  if (fileUrl) {
+    if (getSpeechRecognitionService(context) === speechRecognitionServices.azure) {
+      transcription = await getAzureSpeechRecognition(context, fileUrl)
+    } else {
+      transcription = await getTranscription(context, fileUrl, getWhisperLang(context))
+    }
+  }
+  return transcription
+}
+
 export const handleAudioForChat = async (context: MessengerContext | TelegramContext) => {
   let transcription
   if (context.platform === 'messenger') {
@@ -42,14 +55,7 @@ export const handleAudioForChat = async (context: MessengerContext | TelegramCon
       transcription = await getTranscription(context, context.event.audio.url)
     }
   } else if (context.platform === 'telegram') {
-    const fileUrl = await getFileUrl(context.event.voice.fileId)
-    if (fileUrl) {
-      if (getSpeechRecognitionService(context) === speechRecognitionServices.azure) {
-        transcription = await getAzureSpeechRecognition(context, fileUrl)
-      } else {
-        transcription = await getTranscription(context, fileUrl, getWhisperLang(context))
-      }
-    }
+    transcription = await getTranscriptionFromTelegramFileId(context, context.event.voice.fileId)
   }
   if (!transcription) {
     await context.sendText(`Error getting transcription!`);

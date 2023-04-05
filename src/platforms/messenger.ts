@@ -84,7 +84,7 @@ async function Others(context: MessengerContext) {
   }
   const activeService = getActiveService(context);
   if (
-    [Service_Type.Prediction, Service_Type.DallE].includes(activeService.type)
+    [Service_Type.Replicate, Service_Type.DallE].includes(activeService.type)
   ) {
     await setValueForQuery(context, 'text', context.event.text);
   }
@@ -153,7 +153,7 @@ async function HandleImage(context: MessengerContext) {
   }
   const activeService = getActiveService(context);
   if (
-    [Service_Type.Prediction, Service_Type.DallE].includes(activeService.type)
+    [Service_Type.Replicate, Service_Type.DallE].includes(activeService.type)
   ) {
     await setValueForQuery(context, 'image', context.event.image.url);
   } else {
@@ -170,7 +170,7 @@ async function HandleAudio(context: MessengerContext) {
     return;
   }
   const activeService = getActiveService(context);
-  if ([Service_Type.Prediction].includes(activeService.type)) {
+  if ([Service_Type.Replicate].includes(activeService.type)) {
     await setValueForQuery(context, 'audio', context.event.audio.url);
   } else if ([Service_Type.Chat].includes(activeService.type)) {
     await handleAudioForChat(context)
@@ -199,7 +199,7 @@ async function Submit(context: MessengerContext) {
     return;
   }
   const activeService = getActiveService(context);
-  if ([Service_Type.Prediction].includes(activeService.type)) {
+  if ([Service_Type.Replicate].includes(activeService.type)) {
     await runPrediction(context);
   } else if ([Service_Type.DallE].includes(activeService.type)) {
     await activeService.getAnswer(context);

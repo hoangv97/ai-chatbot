@@ -55,14 +55,40 @@ export const speechToText = async (audioFile: string, language?: string): Promis
     // Create the speech recognizer.
     const recognizer = new SpeechRecognizer(speechConfig, audioConfig);
 
-    recognizer.recognizeOnceAsync(
-      function (result) {
-        recognizer.close();
-        resolve(result.text);
+    let result: string[] = []
+
+    recognizer.startContinuousRecognitionAsync(
+      function () {
+        // console.log("Recognition started.");
       },
       function (err) {
         recognizer.close();
         reject(err);
       });
+
+    recognizer.recognizing = (s, e) => {
+      // console.log(`RECOGNIZING: Text=${e.result.text}`);
+    }
+
+    recognizer.recognized = (s, e) => {
+      if (e.result.reason === ResultReason.RecognizedSpeech) {
+        // console.log(`RECOGNIZED: Text=${e.result.text}`);
+        result.push(e.result.text);
+      } else if (e.result.reason === ResultReason.NoMatch) {
+        console.log("NOMATCH: Speech could not be recognized.");
+      }
+    }
+
+    recognizer.speechEndDetected = (s, e) => {
+      // console.log("Speech end detected event.");
+
+      recognizer.stopContinuousRecognitionAsync(() => {
+        recognizer.close();
+        resolve(result.join(' '));
+      }, (err) => {
+        recognizer.close();
+        reject(err);
+      });
+    }
   })
 }

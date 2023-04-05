@@ -3,7 +3,7 @@ import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
 import { activateAgents, handleQueryAgents, showTools } from "../models/agents";
 import { activateAssistant } from "../models/assistant";
-import { handleAudioForChat, handleTextToSpeechTelegram } from "../models/audio";
+import { getTranscriptionFromTelegramFileId, handleAudioForChat, handleTextToSpeechTelegram } from "../models/audio";
 import { generateImageTelegram } from "../models/openai";
 import { handleChat, handleTelegramCharacter, saveConversation } from "../models/text";
 import { handleUrlPrompt } from "../models/url";
@@ -187,7 +187,13 @@ async function HandleUrl(context: TelegramContext) {
 async function Others(context: TelegramContext) {
   await context.sendChatAction(ChatAction.Typing);
   let { text, replyToMessage } = context.event;
-  const { text: replyText } = replyToMessage || {}
+  const { text: replyText, voice: replyVoice } = replyToMessage || {}
+  if (replyVoice) {
+    const voiceTranscription = await getTranscriptionFromTelegramFileId(context, replyVoice.fileId)
+    if (voiceTranscription) {
+      text += `\n${voiceTranscription}`
+    }
+  }
   if (replyText) {
     text += `\n${replyText}`
   }

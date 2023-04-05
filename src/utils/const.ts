@@ -18,7 +18,7 @@ export const Payload_Type = {
 };
 
 export const Service_Type = {
-  Prediction: 'Prediction',
+  Replicate: 'Replicate',
   Chat: 'chat',
   DallE: 'DallE',
 };
@@ -70,7 +70,7 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://bucketeer-be99e627-94e7-4e5b-a292-54eeb40ac303.s3.amazonaws.com/public/models_models_featured_image/07ab2a80-df3b-4ed1-9ff2-545774b36dfa/stable-diffusion.jpeg',
     version: 'db21e45d3f7023abc2a46ee38a23973f6dce16bb082a930b0c49861f96d1e5bf',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.Image,
     params: [
       { name: 'prompt', type: 'text' },
@@ -102,7 +102,7 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://bucketeer-be99e627-94e7-4e5b-a292-54eeb40ac303.s3.amazonaws.com/public/models_models_featured_image/bf86b681-da40-4090-88bb-73a1f060dc5c/out-0-4.png',
     version: '9936c2001faa2194a261c01381f90e65261879985476014a0a37a334593a05eb',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.Image,
     params: [
       { name: 'prompt', type: 'text' },
@@ -120,7 +120,7 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://replicate.delivery/pbxt/3dbPD8n9bqbDLBZ6PwLbB23NFnmSLV3vhe6XLWpGEcvUODPIA/output_1.png',
     version: '435061a1b5a4c1e26740464bf786efdfa9cb3a3ac488595a2de23e143fdb0117',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.Image,
     params: [
       { name: 'image', type: 'image' },
@@ -141,7 +141,7 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://bucketeer-be99e627-94e7-4e5b-a292-54eeb40ac303.s3.amazonaws.com/public/models_models_featured_image/ea2dabc5-4973-49e4-9f3a-f73b10ad4ca6/instruct-pix2pix.jpg',
     version: '30c1d0b916a6f8efce20493f5d61ee27491ab2a60437c13c588468b9810ec23f',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.Image,
     params: [
       { name: 'prompt', type: 'text' },
@@ -174,7 +174,7 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://bucketeer-be99e627-94e7-4e5b-a292-54eeb40ac303.s3.amazonaws.com/public/models_models_featured_image/0e31af92-963e-4ae3-b900-6104b22f4f7f/012.png',
     version: '7de2ea26c616d5bf2245ad0d5e24f0ff9a6204578a5c876db53142edd9d2cd56',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.SingleImage,
     params: [
       { name: 'image', type: 'image' },
@@ -190,7 +190,7 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://bucketeer-be99e627-94e7-4e5b-a292-54eeb40ac303.s3.amazonaws.com/public/models_models_featured_image/0bcd2b2e-1d38-42a3-bdaa-0c84c16e7c99/styleclip.jpg',
     version: '7af9a66f36f97fee2fece7dcc927551a951f0022cbdd23747b9212f23fc17021',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.SingleImage,
     params: [
       { name: 'input', type: 'image' },
@@ -208,7 +208,7 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://bucketeer-be99e627-94e7-4e5b-a292-54eeb40ac303.s3.amazonaws.com/public/models_models_featured_image/a32001ba-e8b7-4b6d-9bbf-50e901441425/whisper-diagram.jpeg',
     version: '30414ee7c4fffc37e260fcab7842b5be470b9b840f2b608f5baa9bbef9a259ed',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.Transcription,
     params: [
       { name: 'audio', type: 'audio' },
@@ -237,7 +237,7 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://tjzk.replicate.delivery/models_models_cover_image/17f584de-98ae-489c-aea8-fdf366858ad6/640px-Spectrogram-19thC.png',
     version: 'b61392adecdd660326fc9cfc5398182437dbe5e97b5decfb36e1a36de68b5b95',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.Audio,
     params: [
       { name: 'text', type: 'text' },
@@ -270,7 +270,7 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://replicate.delivery/mgxm/cfc9360c-a94c-432f-bb10-5c662d18c1de/out.png',
     version: '7d44f1878a07e7b5a32af9727c1f6120cac04203d48f3f7b0432e28fa8e5c6b6',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.SingleImage,
     params: [
       { name: 'image', type: 'image' },
@@ -285,10 +285,14 @@ export const SERVICES: any[] = [
     imageUrl:
       'https://bucketeer-be99e627-94e7-4e5b-a292-54eeb40ac303.s3.amazonaws.com/public/models_models_featured_image/b59b459c-c475-414f-ba67-c424a7e6e6ca/demo.jpg',
     version: '2e1dddc8621f72155f24cf2e0adbde548458d3cab9f00c0139eea840d0ac4746',
-    type: Service_Type.Prediction,
+    type: Service_Type.Replicate,
     output_type: Output_Type.Text,
     params: [{ name: 'image', type: 'image' }],
     title: 'Bootstrapping Language-Image Pre-training',
     help: '',
   },
 ].filter((item: any) => !item.hidden);
+
+export const REPLICATE_SERVICES = SERVICES.filter(
+  (item: any) => item.type === Service_Type.Replicate
+)
