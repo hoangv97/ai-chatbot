@@ -1,7 +1,8 @@
 import { TelegramContext } from "bottender";
 import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
-import { activateAgents, handleQueryAgents, showTools } from "../models/agents";
+import { getFileUrl } from "../api/telegram";
+import { activateAgents, handleQueryAgents } from "../models/agents";
 import { activateAssistant } from "../models/assistant";
 import { getTranscriptionFromTelegramFileId, handleAudioForChat, handleTextToSpeechTelegram } from "../models/audio";
 import { generateImageTelegram } from "../models/openai";
@@ -10,7 +11,7 @@ import { handleUrlPrompt } from "../models/url";
 import { AGENTS_SERVICE_ID, COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "../utils/const";
 import { clearServiceData, showDebug } from "../utils/context";
 import { parseCommand } from "../utils/helper";
-import { handleDefaultSettings, handleSettings, handleVoices } from "../utils/settings";
+import { getAgentsTools, handleDefaultSettings, handleSettings, handleVoices } from "../utils/settings";
 
 async function showHelp(context: TelegramContext) {
   const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
@@ -40,11 +41,21 @@ async function handleAuth(context: TelegramContext) {
 
 
 async function HandleApps(context: TelegramContext) {
-  const charactersUrl = `${process.env.PROD_API_URL}/static/telegram/characters.html`
+  const charactersUrl = `${process.env.PROD_API_URL}/static/telegram/characters/index.html`
+
+  const agentsTools = getAgentsTools(context)
+  const agentsUrl = `${process.env.PROD_API_URL}/static/telegram/agents/index.html?apiKey=${process.env.MY_AI_API_AUTH_KEY}&tools=${agentsTools}`
+
   await context.sendText('Apps:', {
     replyMarkup: {
       keyboard: [
         [
+          {
+            text: 'Agents',
+            web_app: {
+              url: agentsUrl,
+            }
+          },
           {
             text: 'Characters',
             web_app: {
@@ -70,6 +81,8 @@ async function HandleWebApp(context: TelegramContext) {
     const { _type, ...others } = JSON.parse(context.event.message.webAppData.data)
     if (_type === 'character') {
       await handleTelegramCharacter(context, others)
+    } else if (_type === 'agents') {
+      await activateAgents(context, others.tools)
     }
   } catch (e) {
     console.error(e)
@@ -112,9 +125,6 @@ async function Command(
     case 'ai':
       await activateAssistant(context)
       break
-    case 'agents':
-      await activateAgents(context)
-      break
     case 'apps':
       await HandleApps(context)
       break;
@@ -156,6 +166,10 @@ async function Command(
 
 async function HandleAudio(context: TelegramContext) {
   await handleAudioForChat(context)
+}
+
+async function HandlePhoto(context: TelegramContext) {
+  const { photo } = context.event.message
 }
 
 async function HandleUrl(context: TelegramContext) {
@@ -201,6 +215,17 @@ async function Others(context: TelegramContext) {
   if (context.state.service === URL_SERVICE_ID) {
     await handleUrlPrompt(context, text);
   } else if (context.state.service === AGENTS_SERVICE_ID) {
+    const { photo, document } = replyToMessage || {}
+    if (photo && photo.length) {
+      const { fileId } = photo[0]
+      const filePath = await getFileUrl(fileId)
+      text += `\nImage URL: ${filePath}`
+    }
+    if (document) {
+      const { fileId } = document
+      const filePath = await getFileUrl(fileId)
+      text += `\nFile URL: ${filePath}`
+    }
     await handleQueryAgents(context, text)
   } else {
     await handleChat(context, text)
@@ -217,6 +242,9 @@ const handleTelegram = (context: TelegramContext) => {
   }
   if (context.event.voice) {
     return HandleAudio;
+  }
+  if (context.event.message.photo) {
+    return HandlePhoto;
   }
   return router([
     text(URL_REGEX, HandleUrl),

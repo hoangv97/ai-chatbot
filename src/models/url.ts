@@ -6,6 +6,7 @@ import { Payload_Type } from '../utils/const';
 import { selectService } from '../utils/context';
 import { truncate } from '../utils/helper';
 import { GPT3_MAX_TOKENS } from './openai';
+import { askUrl } from '../api/my_ai';
 
 export const URL_ACTIONS = [
   {
@@ -114,15 +115,7 @@ export const handleUrlPrompt = async (context: MessengerContext | TelegramContex
       }
     })
 
-    const response = await axios({
-      method: 'GET',
-      url: `${process.env.MY_AI_API_URL}/api/url`,
-      params: {
-        url,
-        t,
-        p: prompt,
-      }
-    });
+    const response = await askUrl(url, t, prompt)
     if (response.status !== 200) {
       console.error(response.data);
       await context.sendText('Error! Please try again.');

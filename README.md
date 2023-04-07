@@ -22,10 +22,8 @@ yarn run start
 ### Telegram commands
 
 ```text
-ai - Activate Ai
-agents - Activate Agents
-new - New conversation
 apps - Show all apps
+new - New conversation
 voices - Get Azure voices list
 imagine - Create image from text
 speak - Text to speech

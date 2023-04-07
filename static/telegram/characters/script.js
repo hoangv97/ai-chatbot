@@ -35,7 +35,6 @@ const App = () => {
   };
 
   const handleSelect = (character) => {
-    console.log(window.Telegram.WebApp);
     window.Telegram.WebApp.sendData(
       JSON.stringify({
         ...character,
