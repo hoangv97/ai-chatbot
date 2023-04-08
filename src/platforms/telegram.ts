@@ -19,7 +19,7 @@ Or paste any URL to start a Q&A.
 
 Show apps: [/apps](/apps)
 
-Saved conversations: [Notion](https://notion.so${process.env.CHAT_HISTORY_NOTION_DATABASE_ID})
+Saved conversations: [Notion](https://notion.so/${process.env.CHAT_HISTORY_NOTION_DATABASE_ID})
 
 Characters: [Notion](https://notion.so/${process.env.CHARACTERS_NOTION_DATABASE_ID})`
   await context.sendMessage(helpContent, { parseMode: ParseMode.Markdown, disableWebPagePreview: true });
