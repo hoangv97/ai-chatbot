@@ -42,6 +42,10 @@ help - How to use this bot?
 
 - Add voice chat to Telegram bot
 
+8/4
+
+- Update Apps + Settings - easier to config
+
 ## Configuration
 
 ### The `bottender.config.js` File
