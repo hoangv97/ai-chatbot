@@ -14,7 +14,14 @@ import { parseCommand } from "../utils/helper";
 import { getAgentsTools, getSettings, handleSettings, saveSettings } from "../utils/settings";
 
 async function showHelp(context: TelegramContext) {
-  const helpContent = `Start a conversation with [/new](/new).\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
+  const helpContent = `Start a conversation with [/new](/new).
+Or paste any URL to start a Q&A.
+
+Show apps: [/apps](/apps)
+
+Saved conversations: [Notion](https://notion.so${process.env.CHAT_HISTORY_NOTION_DATABASE_ID})
+
+Characters: [Notion](https://notion.so/${process.env.CHARACTERS_NOTION_DATABASE_ID})`
   await context.sendMessage(helpContent, { parseMode: ParseMode.Markdown, disableWebPagePreview: true });
 }
 
