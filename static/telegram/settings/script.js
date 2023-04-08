@@ -59,6 +59,10 @@ const App = () => {
   const [speechRecognitionService, setSpeechRecognitionService] =
     React.useState(params.get('speechRecognitionService'));
 
+  const [agentsTools, setAgentsTools] = React.useState(
+    params.get('agentsTools')
+  );
+
   const getAzureVoices = async () => {
     setLoadingVoices(true);
     const response = await axios.get(`${API_PREFIX}/azure/voices`, {
@@ -94,6 +98,9 @@ const App = () => {
     }
     if (!isValueEmpty(speechRecognitionService)) {
       settings.speechRecognitionService = speechRecognitionService;
+    }
+    if (!isValueEmpty(agentsTools)) {
+      settings.agentsTools = agentsTools;
     }
 
     console.log(settings);
