@@ -1,10 +1,11 @@
 import bodyParser from 'body-parser';
 import { bottender } from 'bottender';
 import cors from 'cors';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import ChatSystemController from './api/chat_system';
 import { handleWebhooks } from './models/resemble';
+import { getVoices } from './api/azure';
 
 const app = bottender({
   dev: process.env.NODE_ENV !== 'production',
@@ -38,6 +39,14 @@ app.prepare().then(() => {
   server.post('/api/chat-system', ChatSystemController.create);
   server.put('/api/chat-system/:id', ChatSystemController.update);
   server.delete('/api/chat-system/:id', ChatSystemController.delete);
+
+  server.get('/api/azure/voices', async (req: Request, res: Response) => {
+    const { locales } = req.query as any;
+    const voices = await getVoices((locales || '').split(','));
+    res.json({
+      voices,
+    });
+  })
 
   server.post('/webhooks/resemble', handleWebhooks);
 

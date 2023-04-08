@@ -43,7 +43,7 @@ async function Command(
       break;
     case 'c':
     case 'clear':
-      if ([URL_SERVICE_ID].includes(context.state.service as number) || await checkActiveService(context)) {
+      if ([URL_SERVICE_ID].includes(context.state.service as any) || await checkActiveService(context)) {
         await clearServiceData(context);
       }
       break;

@@ -2,7 +2,7 @@ import { TelegramContext } from "bottender";
 import { ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { askAgents } from '../api/my_ai';
 import { AGENTS_SERVICE_ID } from "../utils/const";
-import { getAgentsTools, getAzureVoiceName, isAutoSpeak, setSettings } from "../utils/settings";
+import { getAgentsTools, getAzureVoiceName, isAutoSpeak } from "../utils/settings";
 import { handleTextToSpeechTelegram } from "./audio";
 import { checkPredictionTelegram } from "./replicate";
 
@@ -13,8 +13,11 @@ export const activateAgents = async (context: TelegramContext, tools: string) =>
     context: [],
     query: {},
     data: {},
+    settings: {
+      ...context.state.settings as any,
+      agentsTools: tools,
+    },
   })
-  setSettings(context, 'agentsTools', tools)
 
   const currentTools = getAgentsTools(context)
   await context.sendMessage(`Agents activated with tools: \`${currentTools}\``, { parseMode: ParseMode.Markdown })

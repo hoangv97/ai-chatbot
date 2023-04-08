@@ -11,15 +11,15 @@ import { handleUrlPrompt } from "../models/url";
 import { AGENTS_SERVICE_ID, COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "../utils/const";
 import { clearServiceData, showDebug } from "../utils/context";
 import { parseCommand } from "../utils/helper";
-import { getAgentsTools, handleDefaultSettings, handleSettings, handleVoices } from "../utils/settings";
+import { getAgentsTools, getSettings, handleSettings, saveSettings } from "../utils/settings";
 
 async function showHelp(context: TelegramContext) {
-  const helpContent = `Start a conversation with \`/new\`.\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
+  const helpContent = `Start a conversation with [/new](/new).\nOr paste any URL to start a Q&A.\n\nSaved conversations: [Notion](https://hoangv.notion.site/19421a527c004d4f95c9c09501e03d9e?v=44b8e8e1458946d69ee09482ee98e94d)\n\nCharacters: [Settings](https://codepen.io/viethoang012/full/xxaXQbW) / [API](${process.env.PROD_API_URL}/api/chat-system)`
   await context.sendMessage(helpContent, { parseMode: ParseMode.Markdown, disableWebPagePreview: true });
 }
 
 function isLoggedIn(context: TelegramContext) {
-  const { auth } = context.state.settings || {} as any
+  const { auth } = context.state || {} as any
   return !!auth
 }
 
@@ -28,9 +28,7 @@ async function handleAuth(context: TelegramContext) {
   if (text === process.env.AUTH_KEY) {
     context.setState({
       ...context.state,
-      settings: {
-        auth: true,
-      },
+      auth: true,
     })
     await context.sendMessage(`Good. You may enter now 😎`, { parseMode: ParseMode.Markdown })
     await showHelp(context)
@@ -46,7 +44,13 @@ async function HandleApps(context: TelegramContext) {
   const agentsTools = getAgentsTools(context)
   const agentsUrl = `${process.env.PROD_API_URL}/static/telegram/agents/index.html?apiKey=${process.env.MY_AI_API_AUTH_KEY}&tools=${agentsTools}`
 
-  await context.sendText('Apps:', {
+  let settingsUrl = `${process.env.PROD_API_URL}/static/telegram/settings/index.html?`
+  const settings = getSettings(context)
+  for (const key in settings) {
+    settingsUrl += `&${key}=${settings[key]}`
+  }
+
+  await context.sendMessage('*Apps*', {
     replyMarkup: {
       keyboard: [
         [
@@ -68,11 +72,18 @@ async function HandleApps(context: TelegramContext) {
               url: `${charactersUrl}?s=english`,
             }
           },
+          {
+            text: 'Settings',
+            web_app: {
+              url: settingsUrl,
+            }
+          },
         ] as any,
       ],
       resizeKeyboard: true,
       oneTimeKeyboard: true,
-    }
+    },
+    parseMode: ParseMode.Markdown,
   });
 }
 
@@ -83,6 +94,11 @@ async function HandleWebApp(context: TelegramContext) {
       await handleTelegramCharacter(context, others)
     } else if (_type === 'agents') {
       await activateAgents(context, others.tools)
+      // reset apps buttons with new settings
+      await HandleApps(context)
+    } else if (_type === 'settings') {
+      await saveSettings(context, others.settings)
+      await HandleApps(context)
     }
   } catch (e) {
     console.error(e)
@@ -123,7 +139,8 @@ async function Command(
 ) {
   switch (command.toLowerCase()) {
     case 'ai':
-      await activateAssistant(context)
+      // TODO
+      // await activateAssistant(context)
       break
     case 'apps':
       await HandleApps(context)
@@ -143,14 +160,8 @@ async function Command(
     case 'speak':
       await handleTTS(context, content)
       break;
-    case 'voices':
-      await handleVoices(context, content)
-      break;
     case 'settings':
-      await handleSettings(context, content)
-      break;
-    case 'settings_default':
-      await handleDefaultSettings(context)
+      await handleSettings(context)
       break;
     case 'debug':
       await showDebug(context)

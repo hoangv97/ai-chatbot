@@ -47,6 +47,7 @@ export const selectService = async (context: MessengerContext, page = 0) => {
 };
 
 export const getActiveService = (context: MessengerContext) => {
+  // maybe error when service is string
   return SERVICES[context.state.service as any]
 }
 
@@ -58,6 +59,7 @@ export const showActiveService = async (context: MessengerContext) => {
 };
 
 export const checkActiveService = async (context: MessengerContext) => {
+  // maybe error when service is string
   if (context.state.service as any < 0) {
     await selectService(context);
     return false;

@@ -24,12 +24,10 @@ yarn run start
 ```text
 apps - Show all apps
 new - New conversation
-voices - Get Azure voices list
-imagine - Create image from text
+imagine - Create image using Dall-E 2
 speak - Text to speech
 save - Save conversation
 settings - Settings
-settings_default - Default settings
 debug - Debug
 help - How to use this bot?
 ```

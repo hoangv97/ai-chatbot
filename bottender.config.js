@@ -26,10 +26,11 @@ module.exports = {
     query: {}, // save query for prediction
     context: [], // save conversations data for chatbot
     data: {}, // save other data
+    auth: false, // save auth status
   },
   channels: {
     messenger: {
-      enabled: true,
+      enabled: false,
       path: '/webhooks/messenger',
       pageId: process.env.MESSENGER_PAGE_ID,
       accessToken: process.env.MESSENGER_ACCESS_TOKEN,
