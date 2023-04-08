@@ -1,11 +1,11 @@
-const API_PREFIX = 'https://chat.hoangv.me/api/chat-system';
+const API_PREFIX = 'https://chat.hoangv.me/api/characters';
 
 const App = () => {
+  const params = new URLSearchParams(document.location.search);
+
   const [characters, setCharacters] = React.useState([]);
   const [filteredCharacters, setFilteredCharacters] = React.useState([]);
-  const [search, setSearch] = React.useState(
-    new URLSearchParams(document.location.search).get('s') || ''
-  );
+  const [search, setSearch] = React.useState(params.get('s') || '');
 
   React.useEffect(() => {
     fetchCharacters();
@@ -23,11 +23,10 @@ const App = () => {
 
   const fetchCharacters = async () => {
     try {
-      const response = await axios.get(`${API_PREFIX}`);
+      const response = await axios.get(`${API_PREFIX}`, {
+        params: { apiKey: params.get('apiKey') },
+      });
       const result = response.data;
-      result.sort((a, b) =>
-        a.order === b.order ? 0 : a.order < b.order ? 1 : -1
-      );
       setCharacters(result);
     } catch (error) {
       console.error(error);

@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import ChatSystemController from './api/chat_system';
 import { handleWebhooks } from './models/resemble';
 import { getVoices } from './api/azure';
+import { getCharacters } from './models/characters';
 
 const app = bottender({
   dev: process.env.NODE_ENV !== 'production',
@@ -34,11 +35,22 @@ app.prepare().then(() => {
   // your custom route
   server.use('/static', express.static('static'));
 
-  server.get('/api/chat-system', ChatSystemController.getAll);
-  server.get('/api/chat-system/:id', ChatSystemController.getById);
-  server.post('/api/chat-system', ChatSystemController.create);
-  server.put('/api/chat-system/:id', ChatSystemController.update);
-  server.delete('/api/chat-system/:id', ChatSystemController.delete);
+  // server.get('/api/chat-system', ChatSystemController.getAll);
+  // server.get('/api/chat-system/:id', ChatSystemController.getById);
+  // server.post('/api/chat-system', ChatSystemController.create);
+  // server.put('/api/chat-system/:id', ChatSystemController.update);
+  // server.delete('/api/chat-system/:id', ChatSystemController.delete);
+
+  server.get('/api/characters', async (req: Request, res: Response) => {
+    const { apiKey } = req.query as any;
+    if (apiKey !== process.env.AUTH_KEY) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+      });
+    }
+    const characters = await getCharacters()
+    res.json(characters);
+  })
 
   server.get('/api/azure/voices', async (req: Request, res: Response) => {
     const { locales } = req.query as any;

@@ -39,7 +39,7 @@ async function handleAuth(context: TelegramContext) {
 
 
 async function HandleApps(context: TelegramContext) {
-  const charactersUrl = `${process.env.PROD_API_URL}/static/telegram/characters/index.html`
+  const charactersUrl = `${process.env.PROD_API_URL}/static/telegram/characters/index.html?apiKey=${process.env.AUTH_KEY}`
 
   const agentsTools = getAgentsTools(context)
   const agentsUrl = `${process.env.PROD_API_URL}/static/telegram/agents/index.html?apiKey=${process.env.MY_AI_API_AUTH_KEY}&tools=${agentsTools}`
@@ -64,12 +64,6 @@ async function HandleApps(context: TelegramContext) {
             text: 'Characters',
             web_app: {
               url: charactersUrl,
-            }
-          },
-          {
-            text: 'English tutors',
-            web_app: {
-              url: `${charactersUrl}?s=english`,
             }
           },
           {
