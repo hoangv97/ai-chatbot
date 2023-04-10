@@ -223,6 +223,7 @@ export const handleTelegramCharacter = async (context: TelegramContext, characte
 
     context.setState({
       ...context.state,
+      service: DEFAULT_CHAT_SERVICE_ID,
       context: messages as any,
     });
   } catch (e) {
