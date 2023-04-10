@@ -1,6 +1,6 @@
 import { TelegramContext } from "bottender";
 import { ParseMode } from "bottender/dist/telegram/TelegramTypes";
-import { askAgents } from '../api/my_ai';
+import { chatAgents } from '../api/my_ai';
 import { AGENTS_SERVICE_ID } from "../utils/const";
 import { getAgentsTools, getAzureVoiceName, isAutoSpeak } from "../utils/settings";
 import { handleTextToSpeechTelegram } from "./audio";
@@ -30,15 +30,17 @@ export const handleQueryAgents = async (context: TelegramContext, text: string) 
     return
   }
 
-  const response = await askAgents(text, tools)
+  const chat = await context.getChat()
+  const response = await chatAgents(text, tools, context.state.context as any, chat?.id)
   const { success, error, output, intermediate_steps } = response.data
   if (!success) {
-    await context.sendMessage(error.length ? error[0] : 'Something went wrong. Please try again.', { parseMode: ParseMode.Markdown })
+    await context.sendMessage(
+      error.length ? error[0] : 'Something went wrong. Please try again.',
+      { parseMode: ParseMode.Markdown },
+    )
     return
   }
-  for (const step of intermediate_steps || []) {
-    await context.sendMessage(`\`\`\`\n${step}\`\`\``, { parseMode: ParseMode.Markdown })
-  }
+
   // if output is object
   if (typeof output === 'object') {
     const { success, error, prediction } = output
@@ -55,6 +57,14 @@ export const handleQueryAgents = async (context: TelegramContext, text: string) 
     if (isAutoSpeak(context)) {
       await handleTextToSpeechTelegram(context, output, getAzureVoiceName(context))
     }
+    context.setState({
+      ...context.state,
+      context: [
+        ...context.state.context as any,
+        text,
+        output,
+      ],
+    });
   }
 }
 

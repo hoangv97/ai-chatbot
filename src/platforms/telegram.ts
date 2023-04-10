@@ -9,7 +9,7 @@ import { generateImageTelegram } from "../models/openai";
 import { handleChat, handleTelegramCharacter, saveConversation } from "../models/text";
 import { handleUrlPrompt } from "../models/url";
 import { AGENTS_SERVICE_ID, COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "../utils/const";
-import { clearServiceData, showDebug } from "../utils/context";
+import { activateChatService, clearServiceData, showDebug } from "../utils/context";
 import { parseCommand } from "../utils/helper";
 import { getAgentsTools, getSettings, handleSettings, saveSettings } from "../utils/settings";
 
@@ -145,6 +145,9 @@ async function Command(
       break
     case 'apps':
       await HandleApps(context)
+      break;
+    case 'chat':
+      await activateChatService(context);
       break;
     case 'new':
       await clearServiceData(context);

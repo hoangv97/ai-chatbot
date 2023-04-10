@@ -7,13 +7,21 @@ export const getTools = async () => {
   return response
 }
 
-export const askAgents = async (text: string, tools: string) => {
-  const response = await axios.get(`${process.env.MY_AI_API_URL}/api/ask`, {
+export const chatAgents = async (text: string, tools: string, chatHistory: string[], chatId?: number) => {
+  const response = await axios(`${process.env.MY_AI_API_URL}/api/chat`, {
+    method: 'POST',
     params: {
       apiKey,
-      p: text,
       t: tools,
-    }
+    },
+    data: {
+      p: text,
+      h: chatHistory,
+      telegram: chatId ? {
+        bot_id: process.env.TELEGRAM_ACCESS_TOKEN,
+        chat_id: chatId,
+      } : undefined,
+    },
   })
   return response
 }

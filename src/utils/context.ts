@@ -84,7 +84,6 @@ export const clearServiceData = async (context: MessengerContext | TelegramConte
   } else if (context.platform === 'telegram') {
     context.setState({
       ...context.state,
-      service: DEFAULT_CHAT_SERVICE_ID,
       query: {},
       context: [],
       data: {},
@@ -92,6 +91,14 @@ export const clearServiceData = async (context: MessengerContext | TelegramConte
     await context.sendText('New conversation.');
   }
 };
+
+export const activateChatService = async (context: TelegramContext) => {
+  context.setState({
+    ...context.state,
+    service: DEFAULT_CHAT_SERVICE_ID,
+  });
+  await context.sendText('Chat activated.');
+}
 
 export const setQueryForService = async (context: MessengerContext, field: string, value: string) => {
   context.setState({

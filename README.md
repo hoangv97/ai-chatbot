@@ -23,6 +23,7 @@ yarn run start
 
 ```text
 apps - Show all apps
+chat - ChatGPT bot
 new - New conversation
 imagine - Create image using Dall-E 2
 speak - Text to speech
