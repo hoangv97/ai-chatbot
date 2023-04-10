@@ -2,7 +2,7 @@ import { TelegramContext } from "bottender";
 import { ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { chatAgents } from '../api/my_ai';
 import { AGENTS_SERVICE_ID } from "../utils/const";
-import { getAgentsTools, getAzureVoiceName, isAutoSpeak } from "../utils/settings";
+import { getAgentsActor, getAgentsTools, getAzureVoiceName, isAutoSpeak } from "../utils/settings";
 import { handleTextToSpeechTelegram } from "./audio";
 import { checkPredictionTelegram } from "./replicate";
 
@@ -31,7 +31,7 @@ export const handleQueryAgents = async (context: TelegramContext, text: string) 
   }
 
   const chat = await context.getChat()
-  const response = await chatAgents(text, tools, context.state.context as any, chat?.id)
+  const response = await chatAgents(text, tools, context.state.context as any, getAgentsActor(context), chat?.id)
   const { success, error, output, intermediate_steps } = response.data
   if (!success) {
     await context.sendMessage(

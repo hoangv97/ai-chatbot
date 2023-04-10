@@ -57,3 +57,7 @@ export const getSpeechRecognitionService = (context: TelegramContext | Messenger
 export const getAgentsTools = (context: TelegramContext) => {
   return getSettings(context).agentsTools || '';
 }
+
+export const getAgentsActor = (context: TelegramContext) => {
+  return getSettings(context).agentsActor || 'assistant';
+}
