@@ -196,7 +196,7 @@ export const handleTextToSpeechTelegram = async (context: TelegramContext, messa
 
     const voiceUrl = `${process.env.PROD_API_URL}/${encodedOutputFile}`
 
-    await context.sendVoice(voiceUrl)
+    await context.sendVoice(voiceUrl, { caption: (message || '').slice(0, 1000) })
 
     deleteDownloadFile(outputFile)
     deleteDownloadFile(encodedOutputFile)
