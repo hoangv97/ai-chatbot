@@ -8,7 +8,7 @@ import { getFileUrl } from "../api/telegram";
 import { AGENTS_SERVICE_ID, DOWNLOADS_PATH, Output_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../utils/const";
 import { getActiveService } from "../utils/context";
 import { convertOggToWav, deleteDownloadFile, downloadFile, encodeOggWithOpus } from "../utils/file";
-import { sleep } from "../utils/helper";
+import { sleep, truncate } from "../utils/helper";
 import { getAzureRecognitionLang, getAzureVoiceName, getSpeechRecognitionService, getWhisperLang, speechRecognitionServices } from "../utils/settings";
 import { handleQueryAgents } from "./agents";
 import { getTranscription } from "./openai";
@@ -196,7 +196,7 @@ export const handleTextToSpeechTelegram = async (context: TelegramContext, messa
 
     const voiceUrl = `${process.env.PROD_API_URL}/${encodedOutputFile}`
 
-    await context.sendVoice(voiceUrl, { caption: (message || '').slice(0, 100) })
+    await context.sendVoice(voiceUrl, { caption: truncate(message, 50) })
 
     deleteDownloadFile(outputFile)
     deleteDownloadFile(encodedOutputFile)
