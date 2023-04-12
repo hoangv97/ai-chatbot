@@ -67,6 +67,10 @@ const App = () => {
     params.get('agentsActor')
   );
 
+  const [showAgentsLogs, setShowAgentsLogs] = React.useState(
+    params.get('showAgentsLogs') === 'true'
+  );
+
   const getAzureVoices = async () => {
     setLoadingVoices(true);
     const response = await axios.get(`${API_PREFIX}/azure/voices`, {
@@ -109,6 +113,9 @@ const App = () => {
     if (!isValueEmpty(agentsActor)) {
       settings.agentsActor = agentsActor;
     }
+    if (!!showAgentsLogs) {
+      settings.showAgentsLogs = showAgentsLogs;
+    }
 
     console.log(settings);
     window.Telegram.WebApp.sendData(
@@ -121,7 +128,7 @@ const App = () => {
 
   return (
     <div>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 mb-20">
         <label className="relative inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
@@ -131,6 +138,17 @@ const App = () => {
           />
           <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
           <span class="ml-3 text-sm font-medium">Auto speak when reply</span>
+        </label>
+
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            defaultChecked={showAgentsLogs}
+            onChange={() => setShowAgentsLogs(!showAgentsLogs)}
+            class="sr-only peer"
+          />
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+          <span class="ml-3 text-sm font-medium">Show Agents logs</span>
         </label>
 
         <div>
@@ -237,7 +255,7 @@ const App = () => {
           </select>
         </div>
       </div>
-      <div className="absolute bottom-3 right-3 flex justify-end">
+      <div className="pl-2 fixed bottom-2 right-2 flex justify-end gap-2">
         <button
           className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-3 py-2 text-center"
           onClick={submit}

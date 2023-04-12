@@ -3,6 +3,7 @@ const API_PREFIX = 'https://ai.hoangv.me';
 const App = () => {
   const params = new URLSearchParams(document.location.search);
   const [tools, setTools] = React.useState([]);
+  const [groups, setGroups] = React.useState([]);
   const [selected, setSelected] = React.useState(
     (params.get('tools') || '').split(',').filter((i) => i)
   );
@@ -19,6 +20,7 @@ const App = () => {
       });
       const result = response.data;
       setTools(result);
+      setGroups(Array.from(new Set(result.map((i) => i.groups).flat())));
     } catch (error) {
       console.error(error);
     }
@@ -30,6 +32,12 @@ const App = () => {
     } else {
       setSelected([...selected, itemName]);
     }
+  };
+
+  const handleSelectGroup = (groupName) => {
+    setSelected(
+      tools.filter((i) => i.groups.includes(groupName)).map((i) => i.name)
+    );
   };
 
   const clear = () => {
@@ -47,6 +55,18 @@ const App = () => {
 
   return (
     <div>
+      <div className="flex justify-end gap-3 mb-5">
+        {groups.map((group) => (
+          <button
+            type="button"
+            class="text-gray-900 bg-gradient-to-r from-red-200 via-red-300 to-yellow-200 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400 font-medium rounded-lg text-sm px-3 py-2 text-center"
+            key={group}
+            onClick={() => handleSelectGroup(group)}
+          >
+            {group}
+          </button>
+        ))}
+      </div>
       <ul className="flex flex-col gap-3 mb-20">
         {tools.map((item) => (
           <li
@@ -65,7 +85,7 @@ const App = () => {
           </li>
         ))}
       </ul>
-      <div className="fixed bottom-3 right-3 flex justify-end gap-3">
+      <div className="pl-2 fixed bottom-2 right-2 flex justify-end gap-2">
         {selected.length > 0 && (
           <button
             className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-3 py-2 text-center"

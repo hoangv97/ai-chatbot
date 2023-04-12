@@ -6,7 +6,7 @@ import { objectToJsonWithTruncatedUrls } from "./helper";
 export const handleSettings = async (context: TelegramContext) => {
   let msg = `Open Settings in [/apps](/apps).`
 
-  const currentSettings = { ...getSettings(context) }
+  const currentSettings = { ...getSettings(context), service: context.state.service }
 
   const currentSettingsContent = objectToJsonWithTruncatedUrls(currentSettings)
   if (Object.keys(currentSettings).length > 0) {
@@ -60,4 +60,8 @@ export const getAgentsTools = (context: TelegramContext) => {
 
 export const getAgentsActor = (context: TelegramContext) => {
   return getSettings(context).agentsActor || 'assistant';
+}
+
+export const getShowAgentsLogs = (context: TelegramContext) => {
+  return !!getSettings(context).showAgentsLogs;
 }
