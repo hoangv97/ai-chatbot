@@ -86,14 +86,12 @@ const App = () => {
         ))}
       </ul>
       <div className="pl-2 fixed bottom-2 right-2 flex justify-end gap-2">
-        {selected.length > 0 && (
-          <button
-            className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-3 py-2 text-center"
-            onClick={submit}
-          >
-            {selected.join(',')}
-          </button>
-        )}
+        <button
+          className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-3 py-2 text-center"
+          onClick={submit}
+        >
+          {selected.length > 0 ? selected.join(',') : 'ALL'}
+        </button>
         <button
           className="text-white bg-gradient-to-br from-pink-500 to-orange-400 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-3 py-2 text-center"
           onClick={clear}
