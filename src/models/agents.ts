@@ -26,10 +26,6 @@ export const activateAgents = async (context: TelegramContext, tools: string) =>
 
 export const handleQueryAgents = async (context: TelegramContext, text: string) => {
   const tools = getAgentsTools(context)
-  if (!tools) {
-    await context.sendMessage(`Please set up tools first.`, { parseMode: ParseMode.Markdown })
-    return
-  }
 
   let chatId
   if (getShowAgentsLogs(context)) {
