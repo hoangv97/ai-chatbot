@@ -45,6 +45,19 @@ export const encodeOggWithOpus = async (inputFile: string, outputFile: string) =
   }
 }
 
+export const convertMp4ToWav = async (inputFile: string, outputFile: string) => {
+  try {
+    const { stdout, stderr } = await asyncExec(`ffmpeg -loglevel error -i ${inputFile} -ac 2 -f wav ${outputFile}`);
+    // console.log(stdout);
+
+    if (stderr) {
+      console.error(stderr);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 export const deleteDownloadFile = (filePath: string) => {
   fs.unlink(filePath, (err) => {
     if (err) {

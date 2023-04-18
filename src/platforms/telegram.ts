@@ -3,11 +3,11 @@ import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
 import { getFileUrl } from "../api/telegram";
 import { activateAgents, handleQueryAgents } from "../models/agents";
-import { activateAssistant } from "../models/assistant";
 import { getTranscriptionFromTelegramFileId, handleAudioForChat, handleTextToSpeechTelegram } from "../models/audio";
 import { generateImageTelegram } from "../models/openai";
 import { handleChat, handleTelegramCharacter, saveConversation } from "../models/text";
 import { handleUrlPrompt } from "../models/url";
+import { handleVideoForChat } from "../models/video";
 import { AGENTS_SERVICE_ID, COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "../utils/const";
 import { activateChatService, clearServiceData, showDebug } from "../utils/context";
 import { parseCommand } from "../utils/helper";
@@ -179,8 +179,16 @@ async function Command(
   }
 }
 
-async function HandleAudio(context: TelegramContext) {
+async function HandleVoice(context: TelegramContext) {
   await handleAudioForChat(context)
+}
+
+async function HandleVideoNote(context: TelegramContext) {
+  await handleVideoForChat(context, context.event.videoNote.fileId)
+}
+
+async function HandleVideo(context: TelegramContext) {
+  await handleVideoForChat(context, context.event.video.fileId)
 }
 
 async function HandlePhoto(context: TelegramContext) {
@@ -216,16 +224,29 @@ async function HandleUrl(context: TelegramContext) {
 async function Others(context: TelegramContext) {
   await context.sendChatAction(ChatAction.Typing);
   let { text, replyToMessage } = context.event;
-  const { text: replyText, voice: replyVoice } = replyToMessage || {}
+  const { text: replyText, voice: replyVoice, video: replyVideo, videoNote: replyVideoNote } = replyToMessage || {}
   if (replyVoice) {
     const voiceTranscription = await getTranscriptionFromTelegramFileId(context, replyVoice.fileId)
     if (voiceTranscription) {
       text += `\n${voiceTranscription}`
     }
   }
+  if (replyVideo) {
+    const videoTranscription = await getTranscriptionFromTelegramFileId(context, replyVideo.fileId)
+    if (videoTranscription) {
+      text += `\n${videoTranscription}`
+    }
+  }
+  if (replyVideoNote) {
+    const videoNoteTranscription = await getTranscriptionFromTelegramFileId(context, replyVideoNote.fileId)
+    if (videoNoteTranscription) {
+      text += `\n${videoNoteTranscription}`
+    }
+  }
   if (replyText) {
     text += `\n${replyText}`
   }
+  // console.log('text', text)
 
   if (context.state.service === URL_SERVICE_ID) {
     await handleUrlPrompt(context, text);
@@ -247,6 +268,10 @@ async function Others(context: TelegramContext) {
   }
 }
 
+/*
+Docs: https://core.telegram.org/bots/api#message
+*/
+
 const handleTelegram = (context: TelegramContext) => {
   // console.log(context.event)
   if (!isLoggedIn(context)) {
@@ -256,7 +281,13 @@ const handleTelegram = (context: TelegramContext) => {
     return HandleWebApp;
   }
   if (context.event.voice) {
-    return HandleAudio;
+    return HandleVoice;
+  }
+  if (context.event.videoNote) {
+    return HandleVideoNote;
+  }
+  if (context.event.video) {
+    return HandleVideo;
   }
   if (context.event.message.photo) {
     return HandlePhoto;

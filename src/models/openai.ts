@@ -4,7 +4,7 @@ import fs from 'fs';
 import { encode } from 'gpt-3-encoder';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
 import { DOWNLOADS_PATH } from '../utils/const';
-import { convertOggToMp3, deleteDownloadFile, downloadFile } from '../utils/file';
+import { convertMp4ToWav, convertOggToMp3, deleteDownloadFile, downloadFile } from '../utils/file';
 import { parseCommand } from '../utils/helper';
 
 const configuration = new Configuration({
@@ -82,6 +82,12 @@ export const getTranscription = async (context: MessengerContext | TelegramConte
     if (filePath.endsWith('.oga')) {
       const newFilePath = filePath.replace('.oga', '.mp3')
       await convertOggToMp3(filePath, newFilePath)
+      deleteDownloadFile(filePath)
+      filePath = newFilePath
+    }
+    else if (filePath.endsWith('.mp4')) {
+      const newFilePath = filePath.replace('.mp4', '.wav')
+      await convertMp4ToWav(filePath, newFilePath)
       deleteDownloadFile(filePath)
       filePath = newFilePath
     }

@@ -7,7 +7,7 @@ import { speechToText, textToSpeech } from "../api/azure";
 import { getFileUrl } from "../api/telegram";
 import { AGENTS_SERVICE_ID, DOWNLOADS_PATH, Output_Type, SERVICES, Service_Type, URL_SERVICE_ID } from "../utils/const";
 import { getActiveService } from "../utils/context";
-import { convertOggToWav, deleteDownloadFile, downloadFile, encodeOggWithOpus } from "../utils/file";
+import { convertMp4ToWav, convertOggToWav, deleteDownloadFile, downloadFile, encodeOggWithOpus } from "../utils/file";
 import { sleep, truncate } from "../utils/helper";
 import { getAzureRecognitionLang, getAzureVoiceName, getSpeechRecognitionService, getWhisperLang, speechRecognitionServices } from "../utils/settings";
 import { handleQueryAgents } from "./agents";
@@ -25,6 +25,12 @@ export const getAzureSpeechRecognition = async (context: MessengerContext | Tele
       deleteDownloadFile(filePath)
       filePath = newFilePath
     }
+    else if (filePath.endsWith('.mp4')) {
+      const newFilePath = filePath.replace('.mp4', '.wav')
+      await convertMp4ToWav(filePath, newFilePath)
+      deleteDownloadFile(filePath)
+      filePath = newFilePath
+    }
     const response = await speechToText(filePath, getAzureRecognitionLang(context))
     deleteDownloadFile(filePath)
     return response
@@ -39,8 +45,10 @@ export const getTranscriptionFromTelegramFileId = async (context: TelegramContex
   if (fileUrl) {
     if (getSpeechRecognitionService(context) === speechRecognitionServices.azure) {
       transcription = await getAzureSpeechRecognition(context, fileUrl)
+      // console.log('azure transcription', transcription)
     } else {
       transcription = await getTranscription(context, fileUrl, getWhisperLang(context))
+      // console.log('whisper transcription', transcription)
     }
   }
   return transcription
@@ -182,7 +190,8 @@ export const handleTextToSpeechTelegram = async (context: TelegramContext, messa
   try {
     await context.sendChatAction(ChatAction.Typing);
 
-    const fileId = uuidv4().replaceAll('-', '')
+    let fileId = uuidv4()
+    fileId = fileId.replace(/-/g, '')
     const outputDir = `static/voices`
     const outputFile = `${outputDir}/voice_${fileId}.ogg`
     const encodedOutputFile = `${outputDir}/voice_${fileId}_encoded.ogg`
