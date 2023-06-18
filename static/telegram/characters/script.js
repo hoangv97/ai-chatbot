@@ -1,4 +1,4 @@
-const API_PREFIX = 'https://chat.hoangv.me/api/characters';
+const API_PREFIX = 'https://chat.hoangv.online/api/characters';
 
 const App = () => {
   const params = new URLSearchParams(document.location.search);

@@ -1,4 +1,4 @@
-const API_PREFIX = 'https://ai.hoangv.me';
+const API_PREFIX = 'https://ai.hoangv.online';
 
 const App = () => {
   const params = new URLSearchParams(document.location.search);

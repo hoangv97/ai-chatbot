@@ -1,4 +1,4 @@
-const API_PREFIX = 'https://chat.hoangv.me/api';
+const API_PREFIX = 'https://chat.hoangv.online/api';
 
 const SPEECH_RECOGNITION_SERVICES = [
   { value: 'azure', label: 'Azure' },
