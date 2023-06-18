@@ -2,7 +2,7 @@ import { MessengerContext, TelegramContext } from 'bottender';
 import { ChatAction, ParseMode } from 'bottender/dist/telegram/TelegramTypes';
 import fs from 'fs';
 import { encode } from 'gpt-3-encoder';
-import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
+import { ChatCompletionFunctions, ChatCompletionRequestMessage, Configuration, CreateChatCompletionRequestFunctionCall, OpenAIApi } from 'openai';
 import { DOWNLOADS_PATH } from '../utils/const';
 import { convertMp4ToWav, convertOggToMp3, deleteDownloadFile, downloadFile } from '../utils/file';
 import { parseCommand } from '../utils/helper';
@@ -29,18 +29,66 @@ const handleError = async (context: MessengerContext | TelegramContext, error: a
   }
 };
 
-export const createCompletion = async (messages: ChatCompletionRequestMessage[], max_tokens?: number, temperature?: number) => {
+export const createCompletion = async (
+  messages: ChatCompletionRequestMessage[],
+  max_tokens?: number,
+  temperature?: number,
+  functions?: ChatCompletionFunctions[],
+  function_call?: CreateChatCompletionRequestFunctionCall,
+  model?: string,
+) => {
   const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    model: model || "gpt-3.5-turbo",
     messages,
     max_tokens,
     temperature,
+    functions,
+    function_call,
   });
   return response.data.choices;
 };
 
+export const createCompletionWithFunctions = async (
+  context: TelegramContext,
+  messages: ChatCompletionRequestMessage[],
+  functions: ChatCompletionFunctions[],
+  functionsMap: any,
+  maxTries: number = 3,
+) => {
+  let tries = 0;
+  while (tries < maxTries) {
+    tries++;
+    const response = await createCompletion(
+      messages,
+      undefined,
+      undefined,
+      functions,
+      undefined,
+      'gpt-3.5-turbo-0613',
+    );
+    const { message } = response[0];
+    // console.log(message)
+    if (message) {
+      messages.push(message);
+      const { function_call, content } = message;
+      if (content) {
+        await context.sendText(content);
+        break;
+      }
+      if (function_call) {
+        const { name } = function_call;
+        const func = functionsMap[name || ''];
+        if (func) {
+          const funcResponse = JSON.stringify(await func(JSON.parse(function_call.arguments || '{}')));
+          messages.push({ role: 'function', content: funcResponse, name });
+        }
+      }
+    }
+  }
+}
+
 const getTokens = (messages: ChatCompletionRequestMessage[]) => {
-  const tokens = messages.reduce((prev, curr) => prev + encode(curr.content).length, 0)
+  const tokens = messages.reduce((prev, curr) => prev + encode(curr.content || '').length, 0)
   // console.log(tokens)
   return tokens;
 }

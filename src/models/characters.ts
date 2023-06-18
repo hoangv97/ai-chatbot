@@ -1,20 +1,7 @@
 import { Client } from "@notionhq/client";
+import { getNotionBlockRichText, getNotionPageInfo } from "../utils/notion";
 
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
-
-export const getNotionBlockRichText = (texts: any[]) => {
-  return texts && texts.length ? texts[0].plain_text : ''
-}
-
-const getNotionPageInfo = (page: any) => {
-  const { id, url, icon, cover } = page
-  return {
-    id,
-    url,
-    icon: icon ? icon[icon.type] : null,
-    cover: cover ? cover[cover.type].url : null,
-  }
-}
 
 export const getCharacters = async () => {
   const databaseId = process.env.CHARACTERS_NOTION_DATABASE_ID || ''
