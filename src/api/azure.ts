@@ -8,7 +8,7 @@ export const getVoices = async (locales: string[]) => {
   const synthesizer = new SpeechSynthesizer(speechConfig);
 
   const result = await synthesizer.getVoicesAsync();
-  const voices = result?.voices.filter(v => locales.includes(v.locale))
+  const voices = (result?.voices || []).filter(v => locales.includes(v.locale))
   voices.sort((a, b) => a.locale === b.locale ? 0 : a.locale < b.locale ? -1 : 1)
   return voices;
 }
