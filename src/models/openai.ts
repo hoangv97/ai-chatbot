@@ -80,6 +80,10 @@ export const createCompletionWithFunctions = async (
         const func = functionsMap[name || ''];
         if (func) {
           const funcResponse = JSON.stringify(await func(JSON.parse(function_call.arguments || '{}')));
+          if (!funcResponse) {
+            break;
+          }
+          console.log(funcResponse);
           messages.push({ role: 'function', content: funcResponse, name });
         }
       }

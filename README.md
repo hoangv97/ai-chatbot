@@ -22,6 +22,7 @@ yarn run start
 ### Telegram commands
 
 ```text
+ai - My assistant
 apps - Show all apps
 chat - ChatGPT bot
 new - New conversation

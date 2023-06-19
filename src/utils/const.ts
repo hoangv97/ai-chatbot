@@ -35,7 +35,6 @@ export const URL_SERVICE_ID = 'url';
 export const DEFAULT_CHAT_SERVICE_ID = -1;
 export const ASSISTANT_SERVICE_ID = 'assistant'
 export const AGENTS_SERVICE_ID = 'agents';
-export const TODOS_SERVICE_ID = 'todos';
 
 export const CHAT_RESPONSE_SUGGESTIONS_SPLITTER = '-----suggestions-----'
 

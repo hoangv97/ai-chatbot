@@ -3,13 +3,13 @@ import { ChatAction, ParseMode } from "bottender/dist/telegram/TelegramTypes";
 import { router, text } from "bottender/router";
 import { getFileUrl } from "../api/telegram";
 import { activateAgents, handleQueryAgents } from "../models/agents";
+import { activateAssistant, handleAssistantCommand } from "../models/assistant";
 import { getTranscriptionFromTelegramFileId, handleAudioForChat, handleTextToSpeechTelegram } from "../models/audio";
 import { generateImageTelegram } from "../models/openai";
 import { handleChat, handleTelegramCharacter, saveConversation } from "../models/text";
-import { activateTodos, handleTodosCommand } from "../models/todos";
 import { handleUrlPrompt } from "../models/url";
 import { handleVideoForChat } from "../models/video";
-import { AGENTS_SERVICE_ID, COMMAND_REGEX, TODOS_SERVICE_ID, URL_REGEX, URL_SERVICE_ID } from "../utils/const";
+import { AGENTS_SERVICE_ID, ASSISTANT_SERVICE_ID, COMMAND_REGEX, URL_REGEX, URL_SERVICE_ID } from "../utils/const";
 import { activateChatService, clearServiceData, showDebug } from "../utils/context";
 import { parseCommand } from "../utils/helper";
 import { getAgentsTools, getSettings, handleSettings, saveSettings } from "../utils/settings";
@@ -141,8 +141,7 @@ async function Command(
 ) {
   switch (command.toLowerCase()) {
     case 'ai':
-      // TODO
-      // await activateAssistant(context)
+      await activateAssistant(context)
       break
     case 'apps':
       await HandleApps(context)
@@ -152,9 +151,6 @@ async function Command(
       break;
     case 'new':
       await clearServiceData(context);
-      break;
-    case 'todos':
-      await activateTodos(context)
       break;
     case 'save':
       await saveConversation(context)
@@ -267,8 +263,8 @@ async function Others(context: TelegramContext) {
       text += `\nFile URL: ${filePath}`
     }
     await handleQueryAgents(context, text)
-  } else if (context.state.service === TODOS_SERVICE_ID) {
-    await handleTodosCommand(context, text);
+  } else if (context.state.service === ASSISTANT_SERVICE_ID) {
+    await handleAssistantCommand(context, text);
   } else {
     await handleChat(context, text)
   }
