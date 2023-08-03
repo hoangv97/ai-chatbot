@@ -94,6 +94,13 @@ async function HandleWebApp(context: TelegramContext) {
     const { _type, ...others } = JSON.parse(context.event.message.webAppData.data)
     if (_type === 'character') {
       await handleTelegramCharacter(context, others)
+      context.setState({
+        ...context.state,
+        data: {
+          ...context.state.data as any,
+          character: others,
+        },
+      })
     } else if (_type === 'agents') {
       await activateAgents(context, others.tools)
       // reset apps buttons with new settings
@@ -105,6 +112,20 @@ async function HandleWebApp(context: TelegramContext) {
   } catch (e) {
     console.error(e)
     await context.sendText('Error getting web app data.')
+  }
+}
+
+export const handleNewCharacter = async (context: TelegramContext) => {
+  const { character } = context.state.data as any
+  if (character) {
+    context.setState({
+      ...context.state,
+      query: {},
+      context: [],
+    });
+    await handleTelegramCharacter(context, character)
+  } else {
+    await context.sendText('No character selected.')
   }
 }
 
@@ -151,6 +172,9 @@ async function Command(
       break;
     case 'new':
       await clearServiceData(context);
+      break;
+    case 'new_char':
+      await handleNewCharacter(context);
       break;
     case 'save':
       await saveConversation(context)

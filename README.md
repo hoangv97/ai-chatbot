@@ -26,6 +26,7 @@ ai - My assistant
 apps - Show all apps
 chat - ChatGPT bot
 new - New conversation
+new_char - New conversation with current character
 imagine - Create image using Dall-E 2
 speak - Text to speech
 save - Save conversation

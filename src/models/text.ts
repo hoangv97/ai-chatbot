@@ -190,8 +190,10 @@ export const handleChatSuggestionsPayload = async (context: MessengerContext, va
 export const handleTelegramCharacter = async (context: TelegramContext, character: IChatSystem) => {
   try {
     const messages: ChatCompletionRequestMessage[] = []
-    messages.push({ role: 'system', content: character.system })
-    await context.sendMessage(`*System:*\n${character.system}`, { parseMode: ParseMode.Markdown });
+    if (character.system) {
+      messages.push({ role: 'system', content: character.system })
+      await context.sendMessage(`*System:*\n${character.system}`, { parseMode: ParseMode.Markdown });
+    }
 
     if (character.user) {
       messages.push({ role: 'user', content: character.user })
